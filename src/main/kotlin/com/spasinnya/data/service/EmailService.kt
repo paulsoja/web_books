@@ -9,7 +9,7 @@ class EmailService(
     private val host: String = "smtp-relay.brevo.com",
     private val port: Int = 587,
     private val username: String = "82ca8f002@smtp-brevo.com",
-    private val password: String = "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"
+    private val password: String = System.getenv("BREVO_PASS") ?: error("BREVO_PASS is missing!")
 ) {
 
     private val session: Session = Session.getInstance(Properties().apply {

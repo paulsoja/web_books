@@ -8,8 +8,8 @@ import java.util.*
 
 class JwtServiceImpl : JwtService {
 
-    private val secret = "your_secret_key"
-    private val issuer = "your_app"
+    private val secret = System.getenv("JWT_SECRET") ?: error("JWT_SECRET is missing!")
+    private val issuer = System.getenv("JWT_ISSUER") ?: error("JWT_ISSUER is missing!")
     private val algorithm = Algorithm.HMAC256(secret)
 
     override fun generateAccessToken(user: User): String {
