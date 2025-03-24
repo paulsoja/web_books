@@ -12,8 +12,8 @@ fun Application.configureSecurity() {
     val jwtDomain = "https://jwt-provider-domain/"
     val jwtRealm = "ktor sample app"
     val jwtSecret = "secret"
-    authentication {
-        jwt {
+    install(Authentication) {
+        jwt("auth-jwt") {
             realm = jwtRealm
             verifier(
                 JWT
