@@ -1,6 +1,6 @@
 package com.spasinnya
 
-import com.spasinnya.data.repository.table.*
+import com.spasinnya.data.repository.database.table.*
 import com.spasinnya.domain.model.book.Book
 import kotlinx.serialization.json.Json
 import org.jetbrains.exposed.sql.*

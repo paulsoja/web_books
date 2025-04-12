@@ -2,13 +2,14 @@ package com.spasinnya
 
 import com.spasinnya.DatabaseFactory.loadBooksFromJson
 import com.spasinnya.data.repository.BookRepositoryImpl
-import com.spasinnya.data.repository.DatabaseUserRepository
+import com.spasinnya.data.repository.database.DatabaseUserRepository
 import com.spasinnya.data.service.JwtServiceImpl
 import com.spasinnya.data.service.OtpServiceImpl
 import com.spasinnya.domain.repository.BookRepository
 import com.spasinnya.domain.repository.JwtService
 import com.spasinnya.domain.repository.OtpService
 import com.spasinnya.domain.usecase.AuthUseCase
+import com.spasinnya.domain.usecase.GetBookByIdUseCase
 import com.spasinnya.domain.usecase.GetBooksUseCase
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
@@ -26,6 +27,7 @@ fun Application.module() {
     val jwtService: JwtService = JwtServiceImpl()
     val authUseCase = AuthUseCase(userRepository, otpService, jwtService)
     val booksUseCase = GetBooksUseCase(bookRepository = booksRepository)
+    val bookByIdUseCase = GetBookByIdUseCase(bookRepository = booksRepository)
 
     configureSerialization()
 
@@ -36,6 +38,6 @@ fun Application.module() {
 
     configureMonitoring()
     configureSecurity()
-    configureHTTP(authUseCase, booksUseCase)
+    configureHTTP(authUseCase, booksUseCase, bookByIdUseCase)
     configureRouting()
 }
