@@ -11,6 +11,7 @@ import com.spasinnya.domain.repository.OtpService
 import com.spasinnya.domain.usecase.AuthUseCase
 import com.spasinnya.domain.usecase.GetBookByIdUseCase
 import com.spasinnya.domain.usecase.GetBooksUseCase
+import com.spasinnya.domain.usecase.GetUserProfileUseCase
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
@@ -28,6 +29,7 @@ fun Application.module() {
     val authUseCase = AuthUseCase(userRepository, otpService, jwtService)
     val booksUseCase = GetBooksUseCase(bookRepository = booksRepository)
     val bookByIdUseCase = GetBookByIdUseCase(bookRepository = booksRepository)
+    val userProfileUseCase = GetUserProfileUseCase(userRepository = userRepository)
 
     configureSerialization()
 
@@ -38,6 +40,6 @@ fun Application.module() {
 
     configureMonitoring()
     configureSecurity()
-    configureHTTP(authUseCase, booksUseCase, bookByIdUseCase)
+    configureHTTP(authUseCase, booksUseCase, bookByIdUseCase, userProfileUseCase)
     configureRouting()
 }

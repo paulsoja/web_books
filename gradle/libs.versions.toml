@@ -1,15 +1,15 @@
 
 [versions]
 h2-version = "2.3.232"
-kotlin-version = "2.1.10"
-ktor-version = "3.1.1"
-swagger-codegen-generators = "1.0.55"
-logback-version = "1.4.14"
-postgres-version = "42.7.4"
-exposed = "0.60.0"
+kotlin-version = "2.1.20"
+ktor-version = "3.1.2"
+swagger-codegen-generators = "1.0.56"
+logback-version = "1.5.18"
+postgres-version = "42.7.5"
+exposed = "0.61.0"
 jakarta-api = "2.0.1"
 jakarta = "2.0.1"
-argon2 = "2.11"
+argon2 = "2.12"
 
 [libraries]
 ktor-server-core = { module = "io.ktor:ktor-server-core-jvm", version.ref = "ktor-version" }
