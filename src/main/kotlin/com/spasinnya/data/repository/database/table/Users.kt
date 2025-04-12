@@ -1,4 +1,4 @@
-package com.spasinnya.data.repository.table
+package com.spasinnya.data.repository.database.table
 
 import org.jetbrains.exposed.sql.Table
 

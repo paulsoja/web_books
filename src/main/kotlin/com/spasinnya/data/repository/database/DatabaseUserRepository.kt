@@ -1,6 +1,6 @@
-package com.spasinnya.data.repository
+package com.spasinnya.data.repository.database
 
-import com.spasinnya.data.repository.table.Users
+import com.spasinnya.data.repository.database.table.Users
 import com.spasinnya.domain.model.User
 import com.spasinnya.domain.repository.UserRepository
 import kotlinx.coroutines.Dispatchers

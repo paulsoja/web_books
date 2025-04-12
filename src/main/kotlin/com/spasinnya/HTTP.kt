@@ -1,6 +1,7 @@
 package com.spasinnya
 
 import com.spasinnya.domain.usecase.AuthUseCase
+import com.spasinnya.domain.usecase.GetBookByIdUseCase
 import com.spasinnya.domain.usecase.GetBooksUseCase
 import com.spasinnya.presentation.routes.authRoutes
 import com.spasinnya.presentation.routes.bookRoutes
@@ -13,13 +14,14 @@ import io.swagger.codegen.v3.generators.html.StaticHtmlCodegen
 
 fun Application.configureHTTP(
     authUseCase: AuthUseCase,
-    getBooksUseCase: GetBooksUseCase
+    getBooksUseCase: GetBooksUseCase,
+    getBookByIdUseCase: GetBookByIdUseCase
 ) {
     routing {
         authRoutes(authUseCase)
 
         authenticate("auth-jwt") {
-            bookRoutes(getBooksUseCase)
+            bookRoutes(getBooksUseCase, getBookByIdUseCase)
         }
     }
     routing {
