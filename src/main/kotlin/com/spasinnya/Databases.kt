@@ -5,7 +5,6 @@ import com.spasinnya.domain.model.book.Book
 import kotlinx.serialization.json.Json
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
-import java.io.File
 
 object DatabaseFactory {
 
@@ -79,8 +78,18 @@ object DatabaseFactory {
     }
 
     fun loadBooksFromJson(): BooksWrapper {
-        val jsonFile = File("src/main/resources/books/books_ru.json")
+        val jsonString = ClassLoader.getSystemClassLoader().readResourceAsText("books/books_ru.json")
+        return json.decodeFromString<BooksWrapper>(jsonString)
+
+        /*val jsonFile = File("src/main/resources/books/books_ru.json")
         val jsonString = jsonFile.readText()
-        return json.decodeFromString(jsonString)
+        return json.decodeFromString(jsonString)*/
+    }
+
+    fun ClassLoader.readResourceAsText(path: String): String {
+        return getResourceAsStream(path)
+            ?.bufferedReader()
+            ?.use { it.readText() }
+            ?: error("Resource '$path' not found in classpath")
     }
 }
