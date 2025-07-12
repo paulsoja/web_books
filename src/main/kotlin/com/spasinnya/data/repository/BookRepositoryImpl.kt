@@ -10,8 +10,8 @@ import com.spasinnya.domain.model.book.Author
 import com.spasinnya.domain.model.book.Book
 import com.spasinnya.domain.model.book.BookContent
 import com.spasinnya.domain.repository.BookRepository
-import org.jetbrains.exposed.sql.selectAll
-import org.jetbrains.exposed.sql.transactions.transaction
+import org.jetbrains.exposed.v1.jdbc.selectAll
+import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 
 class BookRepositoryImpl : BookRepository {
 

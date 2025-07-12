@@ -3,8 +3,12 @@ package com.spasinnya
 import com.spasinnya.data.repository.database.table.*
 import com.spasinnya.domain.model.book.Book
 import kotlinx.serialization.json.Json
-import org.jetbrains.exposed.sql.*
-import org.jetbrains.exposed.sql.transactions.transaction
+import org.jetbrains.exposed.v1.jdbc.Database
+import org.jetbrains.exposed.v1.jdbc.SchemaUtils
+import org.jetbrains.exposed.v1.jdbc.insert
+import org.jetbrains.exposed.v1.jdbc.insertAndGetId
+import org.jetbrains.exposed.v1.jdbc.selectAll
+import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 
 object DatabaseFactory {
 
@@ -14,16 +18,16 @@ object DatabaseFactory {
     }
 
     fun init() {
-        /*val url = "jdbc:postgresql://localhost:5432/mentoring_db"
+        val url = "jdbc:postgresql://localhost:5432/mentoring_db"
         val driver = "org.postgresql.Driver"
         val user = "postgres"
-        val password = "root"*/
+        val password = "root"
 
         //val url = "jdbc:postgresql://mentoring_db_user:zjdcYhGc3wmxlPpuxV6N2Y7h5HhxLrRx@dpg-d034v1idbo4c73c9phn0-a/mentoring_db"
-        val url = "jdbc:postgresql://dpg-d034v1idbo4c73c9phn0-a:5432/mentoring_db?user=mentoring_db_user&password=zjdcYhGc3wmxlPpuxV6N2Y7h5HhxLrRx"
+        /*val url = "jdbc:postgresql://dpg-d034v1idbo4c73c9phn0-a:5432/mentoring_db?user=mentoring_db_user&password=zjdcYhGc3wmxlPpuxV6N2Y7h5HhxLrRx"
         val driver = "org.postgresql.Driver"
         val user = "mentoring_db_user"
-        val password = "zjdcYhGc3wmxlPpuxV6N2Y7h5HhxLrRx"
+        val password = "zjdcYhGc3wmxlPpuxV6N2Y7h5HhxLrRx"*/
 
         Database.connect(
             url = url,
