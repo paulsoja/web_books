@@ -17,7 +17,6 @@ class OtpServiceImpl(
     }
 
     override fun verifyOtp(email: String, otpCode: String): Boolean {
-
         return otpStorage[email] == otpCode
     }
 }

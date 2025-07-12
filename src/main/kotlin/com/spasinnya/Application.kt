@@ -17,15 +17,22 @@ import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 
 fun main() {
-    embeddedServer(Netty, port = System.getenv("PORT")?.toInt() ?: 8080, host = "0.0.0.0", module = Application::module)
+    embeddedServer(
+        factory = Netty,
+        port = System.getenv("PORT")?.toInt() ?: 8080,
+        host = "0.0.0.0",
+        module = Application::module
+    )
         .start(wait = true)
 }
 
 fun Application.module() {
     val userRepository = DatabaseUserRepository()
     val booksRepository: BookRepository = BookRepositoryImpl()
+
     val otpService: OtpService = OtpServiceImpl(EmailServiceSingleton.instance)
     val jwtService: JwtService = JwtServiceImpl()
+
     val authUseCase = AuthUseCase(userRepository, otpService, jwtService)
     val booksUseCase = GetBooksUseCase(bookRepository = booksRepository)
     val bookByIdUseCase = GetBookByIdUseCase(bookRepository = booksRepository)
@@ -40,6 +47,11 @@ fun Application.module() {
 
     configureMonitoring()
     configureSecurity()
-    configureHTTP(authUseCase, booksUseCase, bookByIdUseCase, userProfileUseCase)
+    configureHTTP(
+        authUseCase = authUseCase,
+        getBooksUseCase = booksUseCase,
+        getBookByIdUseCase = bookByIdUseCase,
+        getUserProfileUseCase = userProfileUseCase
+    )
     configureRouting()
 }
