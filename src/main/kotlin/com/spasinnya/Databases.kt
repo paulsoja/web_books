@@ -24,10 +24,10 @@ object DatabaseFactory {
         val password = "root"*/
 
         //val url = "jdbc:postgresql://mentoring_db_user:zjdcYhGc3wmxlPpuxV6N2Y7h5HhxLrRx@dpg-d034v1idbo4c73c9phn0-a/mentoring_db"
-        val url = "jdbc:postgresql://dpg-d034v1idbo4c73c9phn0-a:5432/mentoring_db?user=mentoring_db_user&password=zjdcYhGc3wmxlPpuxV6N2Y7h5HhxLrRx"
+        val url = "jdbc:postgresql://dpg-d2b059ndiees73e8ki0g-a:5432/books_app?user=books_app_user&password=WN91wwD2FGnLex6TaV9kXKDkTVLlDJfD"
         val driver = "org.postgresql.Driver"
-        val user = "mentoring_db_user"
-        val password = "zjdcYhGc3wmxlPpuxV6N2Y7h5HhxLrRx"
+        val user = "books_app_user"
+        val password = "WN91wwD2FGnLex6TaV9kXKDkTVLlDJfD"
 
         Database.connect(
             url = url,
