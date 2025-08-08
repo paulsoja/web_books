@@ -6,6 +6,7 @@ import com.spasinnya.data.repository.database.dto.WeekDto
 import com.spasinnya.data.repository.database.entity.BookEntity
 import com.spasinnya.data.repository.database.mapper.toBook
 import com.spasinnya.data.repository.database.table.Books
+import com.spasinnya.domain.exception.NotFoundException
 import com.spasinnya.domain.model.book.Author
 import com.spasinnya.domain.model.book.Book
 import com.spasinnya.domain.model.book.BookContent
@@ -32,7 +33,7 @@ class BookRepositoryImpl : BookRepository {
         }
     }
 
-    override fun getBookById(bookId: Int): Book? = transaction {
+    override fun getBookById(bookId: Int): Book = transaction {
         BookEntity.findById(bookId)?.let { book ->
             BookFullDto(
                 id = book.id.value,
@@ -54,6 +55,6 @@ class BookRepositoryImpl : BookRepository {
                     )
                 }
             ).toBook()
-        }
+        } ?: throw NotFoundException("Book not found")
     }
 }

@@ -4,6 +4,7 @@ import com.spasinnya.domain.exception.InvalidOtpException
 import com.spasinnya.domain.exception.UserNotFoundException
 import com.spasinnya.domain.model.auth.*
 import com.spasinnya.domain.usecase.AuthUseCase
+import io.ktor.client.request.request
 import io.ktor.http.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
@@ -11,9 +12,11 @@ import io.ktor.server.routing.*
 
 fun Route.authRoutes(authUseCase: AuthUseCase) {
     post("/register") {
-        val request = call.receive<RegisterRequest>()
-        authUseCase.register(request.email, request.password)
-        call.respondText("OTP sent to ${request.email}")
+        call.receive<RegisterRequest>()
+            .let { request ->
+                authUseCase.register(request.email, request.password)
+                call.respondText("OTP sent to ${request.email}")
+            }
     }
 
     post("/verify-otp") {
@@ -32,20 +35,28 @@ fun Route.authRoutes(authUseCase: AuthUseCase) {
     }
 
     post("/login") {
-        val request = call.receive<LoginRequest>()
-        val tokens = authUseCase.login(request.email, request.password)
-        call.respond(tokens)
+        call.receive<LoginRequest>()
+            .let { request -> authUseCase.login(request.email, request.password) }
+            .let { token -> call.respond(token) }
     }
 
     post("/reset-password") {
-        val request = call.receive<ResetPasswordRequest>()
-        authUseCase.sendResetPasswordOtp(request.email)
-        call.respondText("OTP sent to ${request.email}")
+        call.receive<ResetPasswordRequest>()
+            .let { request ->
+                authUseCase.sendResetPasswordOtp(request.email)
+                    .also { call.respondText("OTP sent to ${request.email}") }
+            }
     }
 
     post("/set-new-password") {
-        val request = call.receive<SetNewPasswordRequest>()
-        authUseCase.resetPassword(request.email, request.otpCode, request.newPassword)
-        call.respondText("Password updated successfully")
+        call.receive<SetNewPasswordRequest>()
+            .let { request ->
+                authUseCase.resetPassword(
+                    email = request.email,
+                    otpCode = request.otpCode,
+                    newPassword = request.newPassword
+                )
+                call.respondText("Password updated successfully")
+            }
     }
 }

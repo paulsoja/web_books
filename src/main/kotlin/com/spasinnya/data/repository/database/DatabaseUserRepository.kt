@@ -1,6 +1,7 @@
 package com.spasinnya.data.repository.database
 
 import com.spasinnya.data.repository.database.table.Users
+import com.spasinnya.domain.exception.UserNotFoundException
 import com.spasinnya.domain.model.User
 import com.spasinnya.domain.repository.UserRepository
 import kotlinx.coroutines.Dispatchers
@@ -38,16 +39,17 @@ class DatabaseUserRepository : UserRepository {
                     isConfirmed = false
                 )
             }
-
         }
     }
 
-    override suspend fun findByEmail(email: String): User? {
+    override suspend fun findByEmail(email: String): Result<User> {
         return dbQuery {
             Users.selectAll()
                 .where { Users.email eq email }
-                .map { it.toUser() }
+                .map(ResultRow::toUser)
                 .singleOrNull()
+                ?.let { Result.success(it) }
+                ?: Result.failure(UserNotFoundException())
         }
     }
 

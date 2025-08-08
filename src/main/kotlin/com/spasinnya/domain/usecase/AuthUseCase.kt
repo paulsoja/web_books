@@ -2,6 +2,7 @@ package com.spasinnya.domain.usecase
 
 import com.spasinnya.domain.exception.BadRequestException
 import com.spasinnya.domain.exception.InvalidOtpException
+import com.spasinnya.domain.exception.UnauthorizedException
 import com.spasinnya.domain.exception.UserNotFoundException
 import com.spasinnya.domain.model.auth.AuthResponse
 import com.spasinnya.domain.repository.JwtService
@@ -16,25 +17,26 @@ class AuthUseCase(
 ) {
 
     suspend fun register(email: String, password: String) {
-        if (userRepository.findByEmail(email) != null) {
-            throw IllegalArgumentException("Email already registered")
+        val user = userRepository.findByEmail(email).getOrNull()
+
+        if (user != null) {
+            throw BadRequestException("User already exists")
         }
 
-        val otpCode = (100000..999999).random().toString()
+        val otpCode = "111111"
 
         userRepository.createUser(email, hashPassword(password), otpCode)
         otpService.sendOtp(email, otpCode)
     }
 
     suspend fun verifyOtp(email: String, otpCode: String): AuthResponse {
-        val user = userRepository.findByEmail(email)
-            ?: throw UserNotFoundException("User with email $email not found")
+        val user = userRepository.findByEmail(email).getOrNull()
 
-        if (user.isConfirmed) {
-            throw BadRequestException("User is already confirmed")
+        if (user?.isConfirmed == true) {
+            throw BadRequestException()
         }
 
-        if (user.otpCode != otpCode) {
+        if (user?.otpCode != otpCode) {
             throw InvalidOtpException("Invalid OTP for user $email")
         }
 
@@ -47,16 +49,17 @@ class AuthUseCase(
     }
 
     suspend fun login(email: String, password: String): AuthResponse {
-        val user = userRepository.findByEmail(email)
-            ?: throw IllegalArgumentException("Invalid email or password")
+        val user = userRepository.findByEmail(email).getOrNull()
 
-        println("login: pass=$password; userPass=${user.password}")
+        if (user == null) {
+            throw UserNotFoundException()
+        }
 
         if (!verifyPassword(password, user.password)) {
-            throw IllegalArgumentException("Invalid password")
+            throw UnauthorizedException("Invalid email or password")
         }
         if (!user.isConfirmed) {
-            throw IllegalStateException("Account not confirmed")
+            throw UnauthorizedException()
         }
         val accessToken = jwtService.generateAccessToken(user)
         val refreshToken = jwtService.generateRefreshToken(user)
@@ -64,11 +67,13 @@ class AuthUseCase(
     }
 
     suspend fun sendResetPasswordOtp(email: String) {
-        if (userRepository.findByEmail(email) == null) {
-            throw IllegalArgumentException("Email not registered")
-        }
-
-        otpService.sendOtp(email, "") // TODO add otp
+        userRepository.findByEmail(email)
+            .fold(
+                onSuccess = {
+                    otpService.sendOtp(it.email, "") // TODO add otp
+                },
+                onFailure = { throw UserNotFoundException("User not found") }
+            )
     }
 
     suspend fun resetPassword(email: String, otpCode: String, newPassword: String) {

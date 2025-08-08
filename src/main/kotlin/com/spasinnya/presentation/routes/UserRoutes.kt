@@ -13,11 +13,11 @@ fun Route.userRoutes(
     getUserProfileUseCase: GetUserProfileUseCase,
 ) {
     get("/profile") {
-        val principal = call.principal<JWTPrincipal>() ?: throw UnauthorizedException("Unauthorized")
+        val principal = call.principal<JWTPrincipal>() ?: throw UnauthorizedException()
         val email = principal.payload.getClaim("email").asString()
 
-        getUserProfileUseCase.execute(email)
-            ?.let { call.respond(HttpStatusCode.OK, it) }
-            ?: throw UserNotFoundException("")
+        getUserProfileUseCase.invoke(email)
+            .getOrThrow()
+            .let { call.respond(HttpStatusCode.OK, it) }
     }
 }

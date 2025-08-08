@@ -1,12 +1,12 @@
 
 [versions]
 h2-version = "2.3.232"
-kotlin-version = "2.1.20"
-ktor-version = "3.1.2"
-swagger-codegen-generators = "1.0.56"
+kotlin-version = "2.2.0"
+ktor-version = "3.2.2"
+swagger-codegen-generators = "1.0.57"
 logback-version = "1.5.18"
 postgres-version = "42.7.7"
-exposed = "1.0.0-beta-3"
+exposed = "1.0.0-beta-4"
 jakarta-api = "2.0.1"
 jakarta = "2.0.1"
 argon2 = "2.12"
