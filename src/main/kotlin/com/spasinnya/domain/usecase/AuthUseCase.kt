@@ -9,6 +9,7 @@ import com.spasinnya.domain.repository.JwtService
 import com.spasinnya.domain.repository.OtpService
 import com.spasinnya.domain.repository.UserRepository
 import de.mkammerer.argon2.Argon2Factory
+import io.ktor.http.HttpStatusCode
 
 class AuthUseCase(
     private val userRepository: UserRepository,
