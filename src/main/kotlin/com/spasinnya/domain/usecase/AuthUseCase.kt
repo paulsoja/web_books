@@ -9,7 +9,6 @@ import com.spasinnya.domain.repository.JwtService
 import com.spasinnya.domain.repository.OtpService
 import com.spasinnya.domain.repository.UserRepository
 import de.mkammerer.argon2.Argon2Factory
-import io.ktor.http.HttpStatusCode
 
 class AuthUseCase(
     private val userRepository: UserRepository,
@@ -24,7 +23,7 @@ class AuthUseCase(
             throw BadRequestException("User already exists")
         }
 
-        val otpCode = "111111"
+        val otpCode = "1111"
 
         userRepository.createUser(email, hashPassword(password), otpCode)
         otpService.sendOtp(email, otpCode)
@@ -38,7 +37,7 @@ class AuthUseCase(
         }
 
         if (user?.otpCode != otpCode) {
-            throw InvalidOtpException("Invalid OTP for user $email")
+            throw InvalidOtpException("Invalid or expired OTP code for user $email")
         }
 
         userRepository.confirmUser(user.id)

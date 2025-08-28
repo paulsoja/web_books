@@ -1,7 +1,6 @@
 package com.spasinnya.presentation.routes
 
 import com.spasinnya.domain.exception.UnauthorizedException
-import com.spasinnya.domain.exception.UserNotFoundException
 import com.spasinnya.domain.usecase.GetUserProfileUseCase
 import io.ktor.http.*
 import io.ktor.server.auth.*
