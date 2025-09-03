@@ -26,13 +26,16 @@ dependencies {
     implementation(libs.ktor.server.content.negotiation)
     implementation(libs.postgresql)
     implementation(libs.h2)
+    implementation(libs.hikari.cp)
     implementation(libs.exposed.core)
     implementation(libs.exposed.dao)
     implementation(libs.exposed.jdbc)
+    implementation(libs.exposed.kotlin.datetime)
+    implementation(libs.bcrypt)
+    implementation(libs.kotlinx.datetime)
     implementation(libs.ktor.server.call.logging)
     implementation(libs.ktor.server.swagger)
     implementation(libs.ktor.server.openapi)
-    implementation(libs.swagger.codegen.generators)
     implementation(libs.ktor.server.host.common)
     implementation(libs.ktor.server.status.pages)
     implementation(libs.ktor.server.auth)
@@ -48,7 +51,6 @@ dependencies {
 }
 
 tasks.named("dependencyUpdates", com.github.benmanes.gradle.versions.updates.DependencyUpdatesTask::class) {
-    // Только стабильные версии
     rejectVersionIf {
         isNonStable(candidate.version) && !isNonStable(currentVersion)
     }

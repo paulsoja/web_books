@@ -1,15 +1,14 @@
-package com.spasinnya.domain.model
+package com.spasinnya.data.model
 
 import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
 
 @OptIn(ExperimentalTime::class)
-data class User(
+data class UserEntity(
     val id: Long,
     val email: String,
     val passwordHash: String?,
     val status: String,
-    val role: String,
     val confirmedAt: Instant?,
     val lastLoginAt: Instant?,
     val createdAt: Instant,

@@ -1,11 +1,236 @@
-openapi: "3.0.3"
+openapi: 3.0.3
 info:
-  title: "JSON API sample"
-  description: "A JSON API that allows you to view and add customers"
+  title: Auth API
   version: "1.0.0"
+  description: |
+    Минимальный Auth API для регистрации, подтверждения OTP (замокано), логина, рефреша и логаута.
+    ⚠️ OTP сейчас **замокан** и всегда равен `"1111"`.
+
 servers:
-  - url: "http://0.0.0.0:8080"
+  - url: http://localhost:8080
+    description: Local dev
+
+tags:
+  - name: Auth
+    description: Регистрация, подтверждение, логин/рефреш/логаут
+
 paths:
+  /register:
+    post:
+      tags: [Auth]
+      summary: Регистрация
+      description: |
+        Создаёт пользователя со статусом `pending`.  
+        OTP-код для подтверждения **всегда "1111"** (пишется в лог).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+            examples:
+              ok:
+                value: { email: "user@example.com", password: "mypassword" }
+      responses:
+        '201':
+          description: Пользователь создан
+        '400':
+          description: Ошибка (например, пользователь уже существует)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /verify-otp:
+    post:
+      tags: [Auth]
+      summary: Подтверждение e-mail по OTP
+      description: |
+        Проверяет OTP. На данный момент код **жёстко равен "1111"**.
+        При успехе активирует пользователя (status=`active`).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VerifyOtpRequest'
+            examples:
+              ok:
+                value: { email: "user@example.com", code: "1111" }
+      responses:
+        '200':
+          description: Успешно подтверждён
+        '400':
+          description: Неверный код или пользователь не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /login:
+    post:
+      tags: [Auth]
+      summary: Логин по email и паролю
+      description: Возвращает пару токенов (access/refresh).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+            examples:
+              ok:
+                value: { email: "user@example.com", password: "mypassword" }
+      responses:
+        '200':
+          description: Успешный вход
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+              examples:
+                ok:
+                  value:
+                    accessToken: "jwt-access"
+                    accessExpiresAt: "2025-09-02T10:00:00Z"
+                    refreshToken: "jwt-refresh"
+                    refreshExpiresAt: "2025-09-09T10:00:00Z"
+        '401':
+          description: Неверные креденшлы или пользователь не активирован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /refresh:
+    post:
+      tags: [Auth]
+      summary: Обновление access/refresh токенов
+      description: |
+        Принимает **refreshToken** в теле, возвращает новую пару токенов.  
+        Старый refresh обычно помечается неактивным (ротация).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefreshRequest'
+            examples:
+              ok:
+                value: { refreshToken: "jwt-refresh" }
+      responses:
+        '200':
+          description: Новая пара токенов
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+        '401':
+          description: Недействительный или истёкший refresh
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /logout:
+    post:
+      tags: [Auth]
+      summary: Логаут (ревокация refresh-токена)
+      description: Аннулирует переданный refresh-токен.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefreshRequest'
+            examples:
+              ok:
+                value: { refreshToken: "jwt-refresh" }
+      responses:
+        '200':
+          description: Токен отозван
+        '400':
+          description: Не удалось отозвать токен
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
 components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
   schemas:
+    RegisterRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+          example: user@example.com
+        password:
+          type: string
+          minLength: 6
+          example: mypassword
+
+    VerifyOtpRequest:
+      type: object
+      required: [email, code]
+      properties:
+        email:
+          type: string
+          format: email
+          example: user@example.com
+        code:
+          type: string
+          description: Временно замокан — всегда "1111"
+          example: "1111"
+
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+          example: user@example.com
+        password:
+          type: string
+          example: mypassword
+
+    RefreshRequest:
+      type: object
+      required: [refreshToken]
+      properties:
+        refreshToken:
+          type: string
+          description: JWT refresh-токен из /login или /refresh
+
+    TokenResponse:
+      type: object
+      required: [accessToken, accessExpiresAt, refreshToken, refreshExpiresAt]
+      properties:
+        accessToken:
+          type: string
+          description: JWT access
+        accessExpiresAt:
+          type: string
+          format: date-time
+          description: ISO-8601 время истечения access
+        refreshToken:
+          type: string
+          description: JWT refresh
+        refreshExpiresAt:
+          type: string
+          format: date-time
+          description: ISO-8601 время истечения refresh
+
+    ErrorResponse:
+      type: object
+      properties:
+        message:
+          type: string

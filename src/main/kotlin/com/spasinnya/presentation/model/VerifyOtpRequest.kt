@@ -1,9 +1,9 @@
-package com.spasinnya.domain.model.auth
+package com.spasinnya.presentation.model
 
 import kotlinx.serialization.Serializable
 
 @Serializable
 data class VerifyOtpRequest(
     val email: String,
-    val otpCode: String
+    val code: String
 )

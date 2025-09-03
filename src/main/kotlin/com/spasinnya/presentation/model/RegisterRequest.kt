@@ -1,4 +1,4 @@
-package com.spasinnya.domain.model.auth
+package com.spasinnya.presentation.model
 
 import kotlinx.serialization.Serializable
 

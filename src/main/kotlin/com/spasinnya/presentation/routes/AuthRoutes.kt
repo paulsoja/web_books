@@ -1,62 +1,79 @@
+@file:OptIn(ExperimentalTime::class)
+
 package com.spasinnya.presentation.routes
 
-import com.spasinnya.domain.exception.InvalidOtpException
-import com.spasinnya.domain.exception.UserNotFoundException
-import com.spasinnya.domain.model.auth.*
-import com.spasinnya.domain.usecase.AuthUseCase
-import io.ktor.client.request.request
+import com.spasinnya.domain.usecase.*
+import com.spasinnya.presentation.model.LoginRequest
+import com.spasinnya.presentation.model.RegisterRequest
+import com.spasinnya.presentation.model.TokenResponse
+import com.spasinnya.presentation.model.VerifyOtpRequest
 import io.ktor.http.*
+import io.ktor.server.plugins.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import kotlin.time.ExperimentalTime
 
-fun Route.authRoutes(authUseCase: AuthUseCase) {
+fun Route.authRoutes(
+    registerUser: RegisterUserUseCase,
+    verifyOtp: VerifyOtpUseCase,
+    loginUser: LoginUserUseCase,
+    refreshSession: RefreshSessionUseCase,
+    logout: LogoutUseCase
+) {
     post("/register") {
-        call.receive<RegisterRequest>()
-            .let { request ->
-                authUseCase.register(request.email, request.password)
-                call.respondText("OTP sent to ${request.email}")
-            }
+        val req = call.receive<RegisterRequest>()
+        val result = registerUser(req.email, req.password)
+        result.onSuccess { call.respond(HttpStatusCode.Created) }
+            .onFailure { call.respond(HttpStatusCode.BadRequest, it.message ?: "Error") }
     }
 
     post("/verify-otp") {
-        val request = call.receive<VerifyOtpRequest>()
-
-        try {
-            val response = authUseCase.verifyOtp(request.email, request.otpCode)
-            call.respond(HttpStatusCode.OK, response)
-        } catch (e: UserNotFoundException) {
-            call.respond(HttpStatusCode.NotFound, "User not found")
-        } catch (e: InvalidOtpException) {
-            call.respond(HttpStatusCode.BadRequest, "Invalid OTP")
-        } catch (e: Exception) {
-            call.respond(HttpStatusCode.InternalServerError, "An error occurred")
-        }
+        val req = call.receive<VerifyOtpRequest>()
+        val result = verifyOtp(req.email, req.code)
+        result.onSuccess { call.respond(HttpStatusCode.OK) }
+            .onFailure { call.respond(HttpStatusCode.BadRequest, it.message ?: "Error") }
     }
 
     post("/login") {
-        call.receive<LoginRequest>()
-            .let { request -> authUseCase.login(request.email, request.password) }
-            .let { token -> call.respond(token) }
-    }
+        val req = call.receive<LoginRequest>()
+        val ua = call.request.headers["User-Agent"]
+        val ip = call.request.origin.remoteHost
 
-    post("/reset-password") {
-        call.receive<ResetPasswordRequest>()
-            .let { request ->
-                authUseCase.sendResetPasswordOtp(request.email)
-                    .also { call.respondText("OTP sent to ${request.email}") }
-            }
-    }
-
-    post("/set-new-password") {
-        call.receive<SetNewPasswordRequest>()
-            .let { request ->
-                authUseCase.resetPassword(
-                    email = request.email,
-                    otpCode = request.otpCode,
-                    newPassword = request.newPassword
+        val result = loginUser(req.email, req.password, ua, ip)
+        result.onSuccess {
+            call.respond(
+                TokenResponse(
+                    accessToken = it.accessToken,
+                    accessExpiresAt = it.accessExpiresAt.toString(),
+                    refreshToken = it.refreshToken,
+                    refreshExpiresAt = it.refreshExpiresAt.toString()
                 )
-                call.respondText("Password updated successfully")
-            }
+            )
+        }.onFailure {
+            call.respond(HttpStatusCode.Unauthorized, it.message ?: "Unauthorized")
+        }
+    }
+
+    post("/refresh") {
+        val token = call.request.queryParameters["refreshToken"] ?: return@post call.respond(HttpStatusCode.BadRequest)
+        val result = refreshSession(token)
+        result.onSuccess {
+            call.respond(TokenResponse(
+                accessToken = it.accessToken,
+                accessExpiresAt = it.accessExpiresAt.toString(),
+                refreshToken = it.refreshToken,
+                refreshExpiresAt = it.refreshExpiresAt.toString()
+            ))
+        }.onFailure {
+            call.respond(HttpStatusCode.Unauthorized, it.message ?: "Unauthorized")
+        }
+    }
+
+    post("/logout") {
+        val token = call.request.queryParameters["refreshToken"] ?: return@post call.respond(HttpStatusCode.BadRequest)
+        val result = logout.revokeSingle(token)
+        result.onSuccess { call.respond(HttpStatusCode.OK) }
+            .onFailure { call.respond(HttpStatusCode.BadRequest, it.message ?: "Error") }
     }
 }

@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-  <title>JSON API sample</title>
+  <title>Auth API</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
   <meta charset="UTF-8" />
@@ -689,6 +689,95 @@
   <script>
     // Script section to load models into a JS Var
     var defs = {}
+            defs["ErrorResponse"] = {
+  "type" : "object",
+  "properties" : {
+    "message" : {
+      "type" : "string"
+    }
+  }
+};
+            defs["LoginRequest"] = {
+  "required" : [ "email", "password" ],
+  "type" : "object",
+  "properties" : {
+    "email" : {
+      "type" : "string",
+      "format" : "email",
+      "example" : "user@example.com"
+    },
+    "password" : {
+      "type" : "string",
+      "example" : "mypassword"
+    }
+  }
+};
+            defs["RefreshRequest"] = {
+  "required" : [ "refreshToken" ],
+  "type" : "object",
+  "properties" : {
+    "refreshToken" : {
+      "type" : "string",
+      "description" : "JWT refresh-токен из /login или /refresh"
+    }
+  }
+};
+            defs["RegisterRequest"] = {
+  "required" : [ "email", "password" ],
+  "type" : "object",
+  "properties" : {
+    "email" : {
+      "type" : "string",
+      "format" : "email",
+      "example" : "user@example.com"
+    },
+    "password" : {
+      "minLength" : 6,
+      "type" : "string",
+      "example" : "mypassword"
+    }
+  }
+};
+            defs["TokenResponse"] = {
+  "required" : [ "accessExpiresAt", "accessToken", "refreshExpiresAt", "refreshToken" ],
+  "type" : "object",
+  "properties" : {
+    "accessToken" : {
+      "type" : "string",
+      "description" : "JWT access"
+    },
+    "accessExpiresAt" : {
+      "type" : "string",
+      "description" : "ISO-8601 время истечения access",
+      "format" : "date-time"
+    },
+    "refreshToken" : {
+      "type" : "string",
+      "description" : "JWT refresh"
+    },
+    "refreshExpiresAt" : {
+      "type" : "string",
+      "description" : "ISO-8601 время истечения refresh",
+      "format" : "date-time"
+    }
+  }
+};
+            defs["VerifyOtpRequest"] = {
+  "required" : [ "code", "email" ],
+  "type" : "object",
+  "properties" : {
+    "email" : {
+      "type" : "string",
+      "format" : "email",
+      "example" : "user@example.com"
+    },
+    "code" : {
+      "type" : "string",
+      "description" : "Временно замокан — всегда \"1111\"",
+      "example" : "1111"
+    }
+  }
+};
   </script>
 
   <div class="container-fluid">
@@ -705,13 +794,29 @@
             -->
             <li class="nav-fixed nav-header active" data-group="_"><a href="#api-_">API Summary</a></li>
 
+                  <li class="nav-header" data-group="Auth"><a href="#api-Auth">API Methods - Auth</a></li>
+                    <li data-group="Auth" data-name="loginPost" class="">
+                      <a href="#api-Auth-loginPost">loginPost</a>
+                    </li>
+                    <li data-group="Auth" data-name="logoutPost" class="">
+                      <a href="#api-Auth-logoutPost">logoutPost</a>
+                    </li>
+                    <li data-group="Auth" data-name="refreshPost" class="">
+                      <a href="#api-Auth-refreshPost">refreshPost</a>
+                    </li>
+                    <li data-group="Auth" data-name="registerPost" class="">
+                      <a href="#api-Auth-registerPost">registerPost</a>
+                    </li>
+                    <li data-group="Auth" data-name="verifyOtpPost" class="">
+                      <a href="#api-Auth-verifyOtpPost">verifyOtpPost</a>
+                    </li>
           </ul>
         </nav>
       </div>
       <div id="content">
         <div id="project">
           <div class="pull-left">
-            <h1>JSON API sample</h1>
+            <h1>Auth API</h1>
           </div>
           <div class="clearfix"></div>
         </div>
@@ -720,10 +825,1854 @@
             <h2 id="welcome-to-apidoc">API and SDK Documentation</h2>
               <div class="app-desc">Version: 1.0.0</div>
             <hr>
-            <div>A JSON API that allows you to view and add customers</div>
+            <div>Минимальный Auth API для регистрации, подтверждения OTP (замокано), логина, рефреша и логаута.
+⚠️ OTP сейчас <strong>замокан</strong> и всегда равен <code>&quot;1111&quot;</code>.</div>
           </div>
         </div>
         <div id="sections">
+                <section id="api-Auth">
+                  <h1>Auth</h1>
+                    <div id="api-Auth-loginPost">
+                      <article id="api-Auth-loginPost-0" data-group="User" data-name="loginPost" data-version="0">
+                        <div class="pull-left">
+                          <h1>loginPost</h1>
+                          <p>Логин по email и паролю</p>
+                        </div>
+                        <div class="pull-right"></div>
+                        <div class="clearfix"></div>
+                        <p></p>
+                        <p class="marked">Возвращает пару токенов (access/refresh).</p>
+                        <p></p>
+                        <br />
+                        <pre class="prettyprint language-html prettyprinted" data-type="post"><code><span class="pln">/login</span></code></pre>
+                        <p>
+                          <h3>Usage and SDK Samples</h3>
+                        </p>
+                        <ul class="nav nav-tabs nav-tabs-examples">
+                          <li class="active"><a href="#examples-Auth-loginPost-0-curl">Curl</a></li>
+                          <li class=""><a href="#examples-Auth-loginPost-0-java">Java</a></li>
+                          <li class=""><a href="#examples-Auth-loginPost-0-android">Android</a></li>
+                          <!--<li class=""><a href="#examples-Auth-loginPost-0-groovy">Groovy</a></li>-->
+                          <li class=""><a href="#examples-Auth-loginPost-0-objc">Obj-C</a></li>
+                          <li class=""><a href="#examples-Auth-loginPost-0-javascript">JavaScript</a></li>
+                          <!--<li class=""><a href="#examples-Auth-loginPost-0-angular">Angular</a></li>-->
+                          <li class=""><a href="#examples-Auth-loginPost-0-csharp">C#</a></li>
+                          <li class=""><a href="#examples-Auth-loginPost-0-php">PHP</a></li>
+                          <li class=""><a href="#examples-Auth-loginPost-0-perl">Perl</a></li>
+                          <li class=""><a href="#examples-Auth-loginPost-0-python">Python</a></li>
+                        </ul>
+
+                        <div class="tab-content">
+                          <div class="tab-pane active" id="examples-Auth-loginPost-0-curl">
+                           <pre class="prettyprint"><code class="language-bsh">curl -X POST\
+-H "Accept: application/json"\
+-H "Content-Type: application/json"\
+"http://localhost:8080/login"</code></pre>
+                          </div>
+                          <div class="tab-pane" id="examples-Auth-loginPost-0-java">
+                            <pre class="prettyprint"><code class="language-java">import io.swagger.client.*;
+import io.swagger.client.auth.*;
+import io.swagger.client.model.*;
+import io.swagger.client.api.AuthApi;
+
+import java.io.File;
+import java.util.*;
+
+public class AuthApiExample {
+
+    public static void main(String[] args) {
+        
+        AuthApi apiInstance = new AuthApi();
+        LoginRequest body = {
+  "value" : {
+    "email" : "user@example.com",
+    "password" : "mypassword"
+  }
+}; // LoginRequest | 
+        try {
+            TokenResponse result = apiInstance.loginPost(body);
+            System.out.println(result);
+        } catch (ApiException e) {
+            System.err.println("Exception when calling AuthApi#loginPost");
+            e.printStackTrace();
+        }
+    }
+}</code></pre>
+                          </div>
+
+                          <div class="tab-pane" id="examples-Auth-loginPost-0-android">
+                            <pre class="prettyprint"><code class="language-java">import io.swagger.client.api.AuthApi;
+
+public class AuthApiExample {
+
+    public static void main(String[] args) {
+        AuthApi apiInstance = new AuthApi();
+        LoginRequest body = {
+  "value" : {
+    "email" : "user@example.com",
+    "password" : "mypassword"
+  }
+}; // LoginRequest | 
+        try {
+            TokenResponse result = apiInstance.loginPost(body);
+            System.out.println(result);
+        } catch (ApiException e) {
+            System.err.println("Exception when calling AuthApi#loginPost");
+            e.printStackTrace();
+        }
+    }
+}</code></pre>
+                          </div>
+  <!--
+  <div class="tab-pane" id="examples-Auth-loginPost-0-groovy">
+  <pre class="prettyprint language-json prettyprinted" data-type="json"><code>Coming Soon!</code></pre>
+  </div> -->
+                            <div class="tab-pane" id="examples-Auth-loginPost-0-objc">
+                              <pre class="prettyprint"><code class="language-cpp">LoginRequest *body = {
+  "value" : {
+    "email" : "user@example.com",
+    "password" : "mypassword"
+  }
+}; // 
+
+AuthApi *apiInstance = [[AuthApi alloc] init];
+
+// Логин по email и паролю
+[apiInstance loginPostWith:body
+              completionHandler: ^(TokenResponse output, NSError* error) {
+                            if (output) {
+                                NSLog(@"%@", output);
+                            }
+                            if (error) {
+                                NSLog(@"Error: %@", error);
+                            }
+                        }];
+</code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-Auth-loginPost-0-javascript">
+                              <pre class="prettyprint"><code class="language-js">var AuthApi = require('auth_api');
+
+var api = new AuthApi.AuthApi()
+var body = {
+  "value" : {
+    "email" : "user@example.com",
+    "password" : "mypassword"
+  }
+}; // {{LoginRequest}} 
+
+var callback = function(error, data, response) {
+  if (error) {
+    console.error(error);
+  } else {
+    console.log('API called successfully. Returned data: ' + data);
+  }
+};
+api.loginPost(body, callback);
+</code></pre>
+                            </div>
+
+                            <!--<div class="tab-pane" id="examples-Auth-loginPost-0-angular">
+              <pre class="prettyprint language-json prettyprinted" data-type="json"><code>Coming Soon!</code></pre>
+            </div>-->
+                            <div class="tab-pane" id="examples-Auth-loginPost-0-csharp">
+                              <pre class="prettyprint"><code class="language-cs">using System;
+using System.Diagnostics;
+using IO.Swagger.Api;
+using IO.Swagger.Client;
+using IO.Swagger.Model;
+
+namespace Example
+{
+    public class loginPostExample
+    {
+        public void main()
+        {
+
+            var apiInstance = new AuthApi();
+            var body = new LoginRequest(); // LoginRequest | 
+
+            try
+            {
+                // Логин по email и паролю
+                TokenResponse result = apiInstance.loginPost(body);
+                Debug.WriteLine(result);
+            }
+            catch (Exception e)
+            {
+                Debug.Print("Exception when calling AuthApi.loginPost: " + e.Message );
+            }
+        }
+    }
+}
+</code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-Auth-loginPost-0-php">
+                              <pre class="prettyprint"><code class="language-php"><&#63;php
+require_once(__DIR__ . '/vendor/autoload.php');
+
+$api_instance = new Swagger\Client\ApiAuthApi();
+$body = {
+  "value" : {
+    "email" : "user@example.com",
+    "password" : "mypassword"
+  }
+}; // LoginRequest | 
+
+try {
+    $result = $api_instance->loginPost($body);
+    print_r($result);
+} catch (Exception $e) {
+    echo 'Exception when calling AuthApi->loginPost: ', $e->getMessage(), PHP_EOL;
+}
+?></code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-Auth-loginPost-0-perl">
+                              <pre class="prettyprint"><code class="language-perl">use Data::Dumper;
+use WWW::SwaggerClient::Configuration;
+use WWW::SwaggerClient::AuthApi;
+
+my $api_instance = WWW::SwaggerClient::AuthApi->new();
+my $body = WWW::SwaggerClient::Object::LoginRequest->new(); # LoginRequest | 
+
+eval { 
+    my $result = $api_instance->loginPost(body => $body);
+    print Dumper($result);
+};
+if ($@) {
+    warn "Exception when calling AuthApi->loginPost: $@\n";
+}</code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-Auth-loginPost-0-python">
+                              <pre class="prettyprint"><code class="language-python">from __future__ import print_statement
+import time
+import swagger_client
+from swagger_client.rest import ApiException
+from pprint import pprint
+
+# create an instance of the API class
+api_instance = swagger_client.AuthApi()
+body = {
+  "value" : {
+    "email" : "user@example.com",
+    "password" : "mypassword"
+  }
+} # LoginRequest | 
+
+try: 
+    # Логин по email и паролю
+    api_response = api_instance.login_post(body)
+    pprint(api_response)
+except ApiException as e:
+    print("Exception when calling AuthApi->loginPost: %s\n" % e)</code></pre>
+                            </div>
+                          </div>
+
+                          <h2>Parameters</h2>
+
+
+
+                            <div class="methodsubtabletitle">Body parameters</div>
+                            <table id="methodsubtable">
+                              <tr>
+                                <th width="150px">Name</th>
+                                <th>Description</th>
+                              </tr>
+                                <tr><td style="width:150px;">body <span style="color:red;">*</span></td>
+                                <td>
+                                
+                                
+                                <script>
+                                $(document).ready(function() {
+                                  var schemaWrapper = {
+  "content" : {
+    "application/json" : {
+      "schema" : {
+        "$ref" : "#/components/schemas/LoginRequest"
+      },
+      "examples" : {
+        "ok" : {
+          "value" : {
+            "email" : "user@example.com",
+            "password" : "mypassword"
+          }
+        }
+      }
+    }
+  },
+  "required" : true
+};
+                                  var schema = schemaWrapper.content["application/json"].schema;
+                                  if (schema.$ref != null) {
+                                    schema = defsParser.$refs.get(schema.$ref);
+                                  } else {
+                                    schemaWrapper.components = {};
+                                    schemaWrapper.components.schemas = Object.assign({}, defs);
+                                    $RefParser.dereference(schemaWrapper).catch(function(err) {
+                                      console.log(err);
+                                    });
+                                  }
+                                
+                                  var view = new JSONSchemaView(schema,2,{isBodyParam: true});
+                                  var result = $('#d2e199_loginPost_body');
+                                  result.empty();
+                                  result.append(view.render());
+                                });
+                                </script>
+                                <div id="d2e199_loginPost_body"></div>
+                                </td>
+                                </tr>
+                            </table>
+
+
+
+                          <h2>Responses</h2>
+                            <h3> Status: 200 - Успешный вход </h3>
+
+                            <ul class="nav nav-tabs nav-tabs-examples" >
+                                <li class="active">
+                                  <a data-toggle="tab" href="#responses-loginPost-200-schema">Schema</a>
+                                </li>
+
+                            </ul>
+
+                            <div class="tab-content" style='margin-bottom: 10px;'>
+                                <div class="tab-pane active" id="responses-loginPost-200-schema">
+                                  <div id='responses-loginPost-200-schema-200' style="padding: 30px; border-left: 1px solid #eee; border-right: 1px solid #eee; border-bottom: 1px solid #eee;">
+                                    <script>
+                                      $(document).ready(function() {
+                                        var schemaWrapper = {
+  "description" : "Успешный вход",
+  "content" : {
+    "application/json" : {
+      "schema" : {
+        "$ref" : "#/components/schemas/TokenResponse"
+      },
+      "examples" : {
+        "ok" : {
+          "value" : {
+            "accessToken" : "jwt-access",
+            "accessExpiresAt" : "2025-09-02T10:00:00Z",
+            "refreshToken" : "jwt-refresh",
+            "refreshExpiresAt" : "2025-09-09T10:00:00Z"
+          }
+        }
+      }
+    }
+  }
+};
+                                        var schema = schemaWrapper.content["application/json"].schema;
+                                        if (schema.$ref != null) {
+                                          schema = defsParser.$refs.get(schema.$ref);
+                                        } else {
+                                          schemaWrapper.components = {};
+                                          schemaWrapper.components.schemas = Object.assign({}, defs);
+                                          $RefParser.dereference(schemaWrapper).catch(function(err) {
+                                            console.log(err);
+                                          });
+                                        }
+
+                                        //console.log(JSON.stringify(schema));
+                                        var view = new JSONSchemaView(schema, 3);
+                                        $('#responses-loginPost-200-schema-data').val(stringify(schema));
+                                        var result = $('#responses-loginPost-200-schema-200');
+                                        result.empty();
+                                        result.append(view.render());
+                                      });
+                                    </script>
+                                  </div>
+                                  <input id='responses-loginPost-200-schema-data' type='hidden' value=''></input>
+                                </div>
+                            </div>
+
+                            <h3> Status: 401 - Неверные креденшлы или пользователь не активирован </h3>
+
+                            <ul class="nav nav-tabs nav-tabs-examples" >
+                                <li class="active">
+                                  <a data-toggle="tab" href="#responses-loginPost-401-schema">Schema</a>
+                                </li>
+
+                            </ul>
+
+                            <div class="tab-content" style='margin-bottom: 10px;'>
+                                <div class="tab-pane active" id="responses-loginPost-401-schema">
+                                  <div id='responses-loginPost-401-schema-401' style="padding: 30px; border-left: 1px solid #eee; border-right: 1px solid #eee; border-bottom: 1px solid #eee;">
+                                    <script>
+                                      $(document).ready(function() {
+                                        var schemaWrapper = {
+  "description" : "Неверные креденшлы или пользователь не активирован",
+  "content" : {
+    "application/json" : {
+      "schema" : {
+        "$ref" : "#/components/schemas/ErrorResponse"
+      }
+    }
+  }
+};
+                                        var schema = schemaWrapper.content["application/json"].schema;
+                                        if (schema.$ref != null) {
+                                          schema = defsParser.$refs.get(schema.$ref);
+                                        } else {
+                                          schemaWrapper.components = {};
+                                          schemaWrapper.components.schemas = Object.assign({}, defs);
+                                          $RefParser.dereference(schemaWrapper).catch(function(err) {
+                                            console.log(err);
+                                          });
+                                        }
+
+                                        //console.log(JSON.stringify(schema));
+                                        var view = new JSONSchemaView(schema, 3);
+                                        $('#responses-loginPost-401-schema-data').val(stringify(schema));
+                                        var result = $('#responses-loginPost-401-schema-401');
+                                        result.empty();
+                                        result.append(view.render());
+                                      });
+                                    </script>
+                                  </div>
+                                  <input id='responses-loginPost-401-schema-data' type='hidden' value=''></input>
+                                </div>
+                            </div>
+
+                        </article>
+                      </div>
+                      <hr>
+                    <div id="api-Auth-logoutPost">
+                      <article id="api-Auth-logoutPost-0" data-group="User" data-name="logoutPost" data-version="0">
+                        <div class="pull-left">
+                          <h1>logoutPost</h1>
+                          <p>Логаут (ревокация refresh-токена)</p>
+                        </div>
+                        <div class="pull-right"></div>
+                        <div class="clearfix"></div>
+                        <p></p>
+                        <p class="marked">Аннулирует переданный refresh-токен.</p>
+                        <p></p>
+                        <br />
+                        <pre class="prettyprint language-html prettyprinted" data-type="post"><code><span class="pln">/logout</span></code></pre>
+                        <p>
+                          <h3>Usage and SDK Samples</h3>
+                        </p>
+                        <ul class="nav nav-tabs nav-tabs-examples">
+                          <li class="active"><a href="#examples-Auth-logoutPost-0-curl">Curl</a></li>
+                          <li class=""><a href="#examples-Auth-logoutPost-0-java">Java</a></li>
+                          <li class=""><a href="#examples-Auth-logoutPost-0-android">Android</a></li>
+                          <!--<li class=""><a href="#examples-Auth-logoutPost-0-groovy">Groovy</a></li>-->
+                          <li class=""><a href="#examples-Auth-logoutPost-0-objc">Obj-C</a></li>
+                          <li class=""><a href="#examples-Auth-logoutPost-0-javascript">JavaScript</a></li>
+                          <!--<li class=""><a href="#examples-Auth-logoutPost-0-angular">Angular</a></li>-->
+                          <li class=""><a href="#examples-Auth-logoutPost-0-csharp">C#</a></li>
+                          <li class=""><a href="#examples-Auth-logoutPost-0-php">PHP</a></li>
+                          <li class=""><a href="#examples-Auth-logoutPost-0-perl">Perl</a></li>
+                          <li class=""><a href="#examples-Auth-logoutPost-0-python">Python</a></li>
+                        </ul>
+
+                        <div class="tab-content">
+                          <div class="tab-pane active" id="examples-Auth-logoutPost-0-curl">
+                           <pre class="prettyprint"><code class="language-bsh">curl -X POST\
+-H "Accept: application/json"\
+-H "Content-Type: application/json"\
+"http://localhost:8080/logout"</code></pre>
+                          </div>
+                          <div class="tab-pane" id="examples-Auth-logoutPost-0-java">
+                            <pre class="prettyprint"><code class="language-java">import io.swagger.client.*;
+import io.swagger.client.auth.*;
+import io.swagger.client.model.*;
+import io.swagger.client.api.AuthApi;
+
+import java.io.File;
+import java.util.*;
+
+public class AuthApiExample {
+
+    public static void main(String[] args) {
+        
+        AuthApi apiInstance = new AuthApi();
+        RefreshRequest body = {
+  "value" : {
+    "refreshToken" : "jwt-refresh"
+  }
+}; // RefreshRequest | 
+        try {
+            apiInstance.logoutPost(body);
+        } catch (ApiException e) {
+            System.err.println("Exception when calling AuthApi#logoutPost");
+            e.printStackTrace();
+        }
+    }
+}</code></pre>
+                          </div>
+
+                          <div class="tab-pane" id="examples-Auth-logoutPost-0-android">
+                            <pre class="prettyprint"><code class="language-java">import io.swagger.client.api.AuthApi;
+
+public class AuthApiExample {
+
+    public static void main(String[] args) {
+        AuthApi apiInstance = new AuthApi();
+        RefreshRequest body = {
+  "value" : {
+    "refreshToken" : "jwt-refresh"
+  }
+}; // RefreshRequest | 
+        try {
+            apiInstance.logoutPost(body);
+        } catch (ApiException e) {
+            System.err.println("Exception when calling AuthApi#logoutPost");
+            e.printStackTrace();
+        }
+    }
+}</code></pre>
+                          </div>
+  <!--
+  <div class="tab-pane" id="examples-Auth-logoutPost-0-groovy">
+  <pre class="prettyprint language-json prettyprinted" data-type="json"><code>Coming Soon!</code></pre>
+  </div> -->
+                            <div class="tab-pane" id="examples-Auth-logoutPost-0-objc">
+                              <pre class="prettyprint"><code class="language-cpp">RefreshRequest *body = {
+  "value" : {
+    "refreshToken" : "jwt-refresh"
+  }
+}; // 
+
+AuthApi *apiInstance = [[AuthApi alloc] init];
+
+// Логаут (ревокация refresh-токена)
+[apiInstance logoutPostWith:body
+              completionHandler: ^(NSError* error) {
+                            if (error) {
+                                NSLog(@"Error: %@", error);
+                            }
+                        }];
+</code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-Auth-logoutPost-0-javascript">
+                              <pre class="prettyprint"><code class="language-js">var AuthApi = require('auth_api');
+
+var api = new AuthApi.AuthApi()
+var body = {
+  "value" : {
+    "refreshToken" : "jwt-refresh"
+  }
+}; // {{RefreshRequest}} 
+
+var callback = function(error, data, response) {
+  if (error) {
+    console.error(error);
+  } else {
+    console.log('API called successfully.');
+  }
+};
+api.logoutPost(body, callback);
+</code></pre>
+                            </div>
+
+                            <!--<div class="tab-pane" id="examples-Auth-logoutPost-0-angular">
+              <pre class="prettyprint language-json prettyprinted" data-type="json"><code>Coming Soon!</code></pre>
+            </div>-->
+                            <div class="tab-pane" id="examples-Auth-logoutPost-0-csharp">
+                              <pre class="prettyprint"><code class="language-cs">using System;
+using System.Diagnostics;
+using IO.Swagger.Api;
+using IO.Swagger.Client;
+using IO.Swagger.Model;
+
+namespace Example
+{
+    public class logoutPostExample
+    {
+        public void main()
+        {
+
+            var apiInstance = new AuthApi();
+            var body = new RefreshRequest(); // RefreshRequest | 
+
+            try
+            {
+                // Логаут (ревокация refresh-токена)
+                apiInstance.logoutPost(body);
+            }
+            catch (Exception e)
+            {
+                Debug.Print("Exception when calling AuthApi.logoutPost: " + e.Message );
+            }
+        }
+    }
+}
+</code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-Auth-logoutPost-0-php">
+                              <pre class="prettyprint"><code class="language-php"><&#63;php
+require_once(__DIR__ . '/vendor/autoload.php');
+
+$api_instance = new Swagger\Client\ApiAuthApi();
+$body = {
+  "value" : {
+    "refreshToken" : "jwt-refresh"
+  }
+}; // RefreshRequest | 
+
+try {
+    $api_instance->logoutPost($body);
+} catch (Exception $e) {
+    echo 'Exception when calling AuthApi->logoutPost: ', $e->getMessage(), PHP_EOL;
+}
+?></code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-Auth-logoutPost-0-perl">
+                              <pre class="prettyprint"><code class="language-perl">use Data::Dumper;
+use WWW::SwaggerClient::Configuration;
+use WWW::SwaggerClient::AuthApi;
+
+my $api_instance = WWW::SwaggerClient::AuthApi->new();
+my $body = WWW::SwaggerClient::Object::RefreshRequest->new(); # RefreshRequest | 
+
+eval { 
+    $api_instance->logoutPost(body => $body);
+};
+if ($@) {
+    warn "Exception when calling AuthApi->logoutPost: $@\n";
+}</code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-Auth-logoutPost-0-python">
+                              <pre class="prettyprint"><code class="language-python">from __future__ import print_statement
+import time
+import swagger_client
+from swagger_client.rest import ApiException
+from pprint import pprint
+
+# create an instance of the API class
+api_instance = swagger_client.AuthApi()
+body = {
+  "value" : {
+    "refreshToken" : "jwt-refresh"
+  }
+} # RefreshRequest | 
+
+try: 
+    # Логаут (ревокация refresh-токена)
+    api_instance.logout_post(body)
+except ApiException as e:
+    print("Exception when calling AuthApi->logoutPost: %s\n" % e)</code></pre>
+                            </div>
+                          </div>
+
+                          <h2>Parameters</h2>
+
+
+
+                            <div class="methodsubtabletitle">Body parameters</div>
+                            <table id="methodsubtable">
+                              <tr>
+                                <th width="150px">Name</th>
+                                <th>Description</th>
+                              </tr>
+                                <tr><td style="width:150px;">body <span style="color:red;">*</span></td>
+                                <td>
+                                
+                                
+                                <script>
+                                $(document).ready(function() {
+                                  var schemaWrapper = {
+  "content" : {
+    "application/json" : {
+      "schema" : {
+        "$ref" : "#/components/schemas/RefreshRequest"
+      },
+      "examples" : {
+        "ok" : {
+          "value" : {
+            "refreshToken" : "jwt-refresh"
+          }
+        }
+      }
+    }
+  },
+  "required" : true
+};
+                                  var schema = schemaWrapper.content["application/json"].schema;
+                                  if (schema.$ref != null) {
+                                    schema = defsParser.$refs.get(schema.$ref);
+                                  } else {
+                                    schemaWrapper.components = {};
+                                    schemaWrapper.components.schemas = Object.assign({}, defs);
+                                    $RefParser.dereference(schemaWrapper).catch(function(err) {
+                                      console.log(err);
+                                    });
+                                  }
+                                
+                                  var view = new JSONSchemaView(schema,2,{isBodyParam: true});
+                                  var result = $('#d2e199_logoutPost_body');
+                                  result.empty();
+                                  result.append(view.render());
+                                });
+                                </script>
+                                <div id="d2e199_logoutPost_body"></div>
+                                </td>
+                                </tr>
+                            </table>
+
+
+
+                          <h2>Responses</h2>
+                            <h3> Status: 200 - Токен отозван </h3>
+
+                            <ul class="nav nav-tabs nav-tabs-examples" >
+                            </ul>
+
+                            <div class="tab-content" style='margin-bottom: 10px;'>
+                            </div>
+
+                            <h3> Status: 400 - Не удалось отозвать токен </h3>
+
+                            <ul class="nav nav-tabs nav-tabs-examples" >
+                                <li class="active">
+                                  <a data-toggle="tab" href="#responses-logoutPost-400-schema">Schema</a>
+                                </li>
+
+                            </ul>
+
+                            <div class="tab-content" style='margin-bottom: 10px;'>
+                                <div class="tab-pane active" id="responses-logoutPost-400-schema">
+                                  <div id='responses-logoutPost-400-schema-400' style="padding: 30px; border-left: 1px solid #eee; border-right: 1px solid #eee; border-bottom: 1px solid #eee;">
+                                    <script>
+                                      $(document).ready(function() {
+                                        var schemaWrapper = {
+  "description" : "Не удалось отозвать токен",
+  "content" : {
+    "application/json" : {
+      "schema" : {
+        "$ref" : "#/components/schemas/ErrorResponse"
+      }
+    }
+  }
+};
+                                        var schema = schemaWrapper.content["application/json"].schema;
+                                        if (schema.$ref != null) {
+                                          schema = defsParser.$refs.get(schema.$ref);
+                                        } else {
+                                          schemaWrapper.components = {};
+                                          schemaWrapper.components.schemas = Object.assign({}, defs);
+                                          $RefParser.dereference(schemaWrapper).catch(function(err) {
+                                            console.log(err);
+                                          });
+                                        }
+
+                                        //console.log(JSON.stringify(schema));
+                                        var view = new JSONSchemaView(schema, 3);
+                                        $('#responses-logoutPost-400-schema-data').val(stringify(schema));
+                                        var result = $('#responses-logoutPost-400-schema-400');
+                                        result.empty();
+                                        result.append(view.render());
+                                      });
+                                    </script>
+                                  </div>
+                                  <input id='responses-logoutPost-400-schema-data' type='hidden' value=''></input>
+                                </div>
+                            </div>
+
+                        </article>
+                      </div>
+                      <hr>
+                    <div id="api-Auth-refreshPost">
+                      <article id="api-Auth-refreshPost-0" data-group="User" data-name="refreshPost" data-version="0">
+                        <div class="pull-left">
+                          <h1>refreshPost</h1>
+                          <p>Обновление access/refresh токенов</p>
+                        </div>
+                        <div class="pull-right"></div>
+                        <div class="clearfix"></div>
+                        <p></p>
+                        <p class="marked">Принимает **refreshToken** в теле, возвращает новую пару токенов.  
+Старый refresh обычно помечается неактивным (ротация).
+</p>
+                        <p></p>
+                        <br />
+                        <pre class="prettyprint language-html prettyprinted" data-type="post"><code><span class="pln">/refresh</span></code></pre>
+                        <p>
+                          <h3>Usage and SDK Samples</h3>
+                        </p>
+                        <ul class="nav nav-tabs nav-tabs-examples">
+                          <li class="active"><a href="#examples-Auth-refreshPost-0-curl">Curl</a></li>
+                          <li class=""><a href="#examples-Auth-refreshPost-0-java">Java</a></li>
+                          <li class=""><a href="#examples-Auth-refreshPost-0-android">Android</a></li>
+                          <!--<li class=""><a href="#examples-Auth-refreshPost-0-groovy">Groovy</a></li>-->
+                          <li class=""><a href="#examples-Auth-refreshPost-0-objc">Obj-C</a></li>
+                          <li class=""><a href="#examples-Auth-refreshPost-0-javascript">JavaScript</a></li>
+                          <!--<li class=""><a href="#examples-Auth-refreshPost-0-angular">Angular</a></li>-->
+                          <li class=""><a href="#examples-Auth-refreshPost-0-csharp">C#</a></li>
+                          <li class=""><a href="#examples-Auth-refreshPost-0-php">PHP</a></li>
+                          <li class=""><a href="#examples-Auth-refreshPost-0-perl">Perl</a></li>
+                          <li class=""><a href="#examples-Auth-refreshPost-0-python">Python</a></li>
+                        </ul>
+
+                        <div class="tab-content">
+                          <div class="tab-pane active" id="examples-Auth-refreshPost-0-curl">
+                           <pre class="prettyprint"><code class="language-bsh">curl -X POST\
+-H "Accept: application/json"\
+-H "Content-Type: application/json"\
+"http://localhost:8080/refresh"</code></pre>
+                          </div>
+                          <div class="tab-pane" id="examples-Auth-refreshPost-0-java">
+                            <pre class="prettyprint"><code class="language-java">import io.swagger.client.*;
+import io.swagger.client.auth.*;
+import io.swagger.client.model.*;
+import io.swagger.client.api.AuthApi;
+
+import java.io.File;
+import java.util.*;
+
+public class AuthApiExample {
+
+    public static void main(String[] args) {
+        
+        AuthApi apiInstance = new AuthApi();
+        RefreshRequest body = {
+  "value" : {
+    "refreshToken" : "jwt-refresh"
+  }
+}; // RefreshRequest | 
+        try {
+            TokenResponse result = apiInstance.refreshPost(body);
+            System.out.println(result);
+        } catch (ApiException e) {
+            System.err.println("Exception when calling AuthApi#refreshPost");
+            e.printStackTrace();
+        }
+    }
+}</code></pre>
+                          </div>
+
+                          <div class="tab-pane" id="examples-Auth-refreshPost-0-android">
+                            <pre class="prettyprint"><code class="language-java">import io.swagger.client.api.AuthApi;
+
+public class AuthApiExample {
+
+    public static void main(String[] args) {
+        AuthApi apiInstance = new AuthApi();
+        RefreshRequest body = {
+  "value" : {
+    "refreshToken" : "jwt-refresh"
+  }
+}; // RefreshRequest | 
+        try {
+            TokenResponse result = apiInstance.refreshPost(body);
+            System.out.println(result);
+        } catch (ApiException e) {
+            System.err.println("Exception when calling AuthApi#refreshPost");
+            e.printStackTrace();
+        }
+    }
+}</code></pre>
+                          </div>
+  <!--
+  <div class="tab-pane" id="examples-Auth-refreshPost-0-groovy">
+  <pre class="prettyprint language-json prettyprinted" data-type="json"><code>Coming Soon!</code></pre>
+  </div> -->
+                            <div class="tab-pane" id="examples-Auth-refreshPost-0-objc">
+                              <pre class="prettyprint"><code class="language-cpp">RefreshRequest *body = {
+  "value" : {
+    "refreshToken" : "jwt-refresh"
+  }
+}; // 
+
+AuthApi *apiInstance = [[AuthApi alloc] init];
+
+// Обновление access/refresh токенов
+[apiInstance refreshPostWith:body
+              completionHandler: ^(TokenResponse output, NSError* error) {
+                            if (output) {
+                                NSLog(@"%@", output);
+                            }
+                            if (error) {
+                                NSLog(@"Error: %@", error);
+                            }
+                        }];
+</code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-Auth-refreshPost-0-javascript">
+                              <pre class="prettyprint"><code class="language-js">var AuthApi = require('auth_api');
+
+var api = new AuthApi.AuthApi()
+var body = {
+  "value" : {
+    "refreshToken" : "jwt-refresh"
+  }
+}; // {{RefreshRequest}} 
+
+var callback = function(error, data, response) {
+  if (error) {
+    console.error(error);
+  } else {
+    console.log('API called successfully. Returned data: ' + data);
+  }
+};
+api.refreshPost(body, callback);
+</code></pre>
+                            </div>
+
+                            <!--<div class="tab-pane" id="examples-Auth-refreshPost-0-angular">
+              <pre class="prettyprint language-json prettyprinted" data-type="json"><code>Coming Soon!</code></pre>
+            </div>-->
+                            <div class="tab-pane" id="examples-Auth-refreshPost-0-csharp">
+                              <pre class="prettyprint"><code class="language-cs">using System;
+using System.Diagnostics;
+using IO.Swagger.Api;
+using IO.Swagger.Client;
+using IO.Swagger.Model;
+
+namespace Example
+{
+    public class refreshPostExample
+    {
+        public void main()
+        {
+
+            var apiInstance = new AuthApi();
+            var body = new RefreshRequest(); // RefreshRequest | 
+
+            try
+            {
+                // Обновление access/refresh токенов
+                TokenResponse result = apiInstance.refreshPost(body);
+                Debug.WriteLine(result);
+            }
+            catch (Exception e)
+            {
+                Debug.Print("Exception when calling AuthApi.refreshPost: " + e.Message );
+            }
+        }
+    }
+}
+</code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-Auth-refreshPost-0-php">
+                              <pre class="prettyprint"><code class="language-php"><&#63;php
+require_once(__DIR__ . '/vendor/autoload.php');
+
+$api_instance = new Swagger\Client\ApiAuthApi();
+$body = {
+  "value" : {
+    "refreshToken" : "jwt-refresh"
+  }
+}; // RefreshRequest | 
+
+try {
+    $result = $api_instance->refreshPost($body);
+    print_r($result);
+} catch (Exception $e) {
+    echo 'Exception when calling AuthApi->refreshPost: ', $e->getMessage(), PHP_EOL;
+}
+?></code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-Auth-refreshPost-0-perl">
+                              <pre class="prettyprint"><code class="language-perl">use Data::Dumper;
+use WWW::SwaggerClient::Configuration;
+use WWW::SwaggerClient::AuthApi;
+
+my $api_instance = WWW::SwaggerClient::AuthApi->new();
+my $body = WWW::SwaggerClient::Object::RefreshRequest->new(); # RefreshRequest | 
+
+eval { 
+    my $result = $api_instance->refreshPost(body => $body);
+    print Dumper($result);
+};
+if ($@) {
+    warn "Exception when calling AuthApi->refreshPost: $@\n";
+}</code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-Auth-refreshPost-0-python">
+                              <pre class="prettyprint"><code class="language-python">from __future__ import print_statement
+import time
+import swagger_client
+from swagger_client.rest import ApiException
+from pprint import pprint
+
+# create an instance of the API class
+api_instance = swagger_client.AuthApi()
+body = {
+  "value" : {
+    "refreshToken" : "jwt-refresh"
+  }
+} # RefreshRequest | 
+
+try: 
+    # Обновление access/refresh токенов
+    api_response = api_instance.refresh_post(body)
+    pprint(api_response)
+except ApiException as e:
+    print("Exception when calling AuthApi->refreshPost: %s\n" % e)</code></pre>
+                            </div>
+                          </div>
+
+                          <h2>Parameters</h2>
+
+
+
+                            <div class="methodsubtabletitle">Body parameters</div>
+                            <table id="methodsubtable">
+                              <tr>
+                                <th width="150px">Name</th>
+                                <th>Description</th>
+                              </tr>
+                                <tr><td style="width:150px;">body <span style="color:red;">*</span></td>
+                                <td>
+                                
+                                
+                                <script>
+                                $(document).ready(function() {
+                                  var schemaWrapper = {
+  "content" : {
+    "application/json" : {
+      "schema" : {
+        "$ref" : "#/components/schemas/RefreshRequest"
+      },
+      "examples" : {
+        "ok" : {
+          "value" : {
+            "refreshToken" : "jwt-refresh"
+          }
+        }
+      }
+    }
+  },
+  "required" : true
+};
+                                  var schema = schemaWrapper.content["application/json"].schema;
+                                  if (schema.$ref != null) {
+                                    schema = defsParser.$refs.get(schema.$ref);
+                                  } else {
+                                    schemaWrapper.components = {};
+                                    schemaWrapper.components.schemas = Object.assign({}, defs);
+                                    $RefParser.dereference(schemaWrapper).catch(function(err) {
+                                      console.log(err);
+                                    });
+                                  }
+                                
+                                  var view = new JSONSchemaView(schema,2,{isBodyParam: true});
+                                  var result = $('#d2e199_refreshPost_body');
+                                  result.empty();
+                                  result.append(view.render());
+                                });
+                                </script>
+                                <div id="d2e199_refreshPost_body"></div>
+                                </td>
+                                </tr>
+                            </table>
+
+
+
+                          <h2>Responses</h2>
+                            <h3> Status: 200 - Новая пара токенов </h3>
+
+                            <ul class="nav nav-tabs nav-tabs-examples" >
+                                <li class="active">
+                                  <a data-toggle="tab" href="#responses-refreshPost-200-schema">Schema</a>
+                                </li>
+
+                            </ul>
+
+                            <div class="tab-content" style='margin-bottom: 10px;'>
+                                <div class="tab-pane active" id="responses-refreshPost-200-schema">
+                                  <div id='responses-refreshPost-200-schema-200' style="padding: 30px; border-left: 1px solid #eee; border-right: 1px solid #eee; border-bottom: 1px solid #eee;">
+                                    <script>
+                                      $(document).ready(function() {
+                                        var schemaWrapper = {
+  "description" : "Новая пара токенов",
+  "content" : {
+    "application/json" : {
+      "schema" : {
+        "$ref" : "#/components/schemas/TokenResponse"
+      }
+    }
+  }
+};
+                                        var schema = schemaWrapper.content["application/json"].schema;
+                                        if (schema.$ref != null) {
+                                          schema = defsParser.$refs.get(schema.$ref);
+                                        } else {
+                                          schemaWrapper.components = {};
+                                          schemaWrapper.components.schemas = Object.assign({}, defs);
+                                          $RefParser.dereference(schemaWrapper).catch(function(err) {
+                                            console.log(err);
+                                          });
+                                        }
+
+                                        //console.log(JSON.stringify(schema));
+                                        var view = new JSONSchemaView(schema, 3);
+                                        $('#responses-refreshPost-200-schema-data').val(stringify(schema));
+                                        var result = $('#responses-refreshPost-200-schema-200');
+                                        result.empty();
+                                        result.append(view.render());
+                                      });
+                                    </script>
+                                  </div>
+                                  <input id='responses-refreshPost-200-schema-data' type='hidden' value=''></input>
+                                </div>
+                            </div>
+
+                            <h3> Status: 401 - Недействительный или истёкший refresh </h3>
+
+                            <ul class="nav nav-tabs nav-tabs-examples" >
+                                <li class="active">
+                                  <a data-toggle="tab" href="#responses-refreshPost-401-schema">Schema</a>
+                                </li>
+
+                            </ul>
+
+                            <div class="tab-content" style='margin-bottom: 10px;'>
+                                <div class="tab-pane active" id="responses-refreshPost-401-schema">
+                                  <div id='responses-refreshPost-401-schema-401' style="padding: 30px; border-left: 1px solid #eee; border-right: 1px solid #eee; border-bottom: 1px solid #eee;">
+                                    <script>
+                                      $(document).ready(function() {
+                                        var schemaWrapper = {
+  "description" : "Недействительный или истёкший refresh",
+  "content" : {
+    "application/json" : {
+      "schema" : {
+        "$ref" : "#/components/schemas/ErrorResponse"
+      }
+    }
+  }
+};
+                                        var schema = schemaWrapper.content["application/json"].schema;
+                                        if (schema.$ref != null) {
+                                          schema = defsParser.$refs.get(schema.$ref);
+                                        } else {
+                                          schemaWrapper.components = {};
+                                          schemaWrapper.components.schemas = Object.assign({}, defs);
+                                          $RefParser.dereference(schemaWrapper).catch(function(err) {
+                                            console.log(err);
+                                          });
+                                        }
+
+                                        //console.log(JSON.stringify(schema));
+                                        var view = new JSONSchemaView(schema, 3);
+                                        $('#responses-refreshPost-401-schema-data').val(stringify(schema));
+                                        var result = $('#responses-refreshPost-401-schema-401');
+                                        result.empty();
+                                        result.append(view.render());
+                                      });
+                                    </script>
+                                  </div>
+                                  <input id='responses-refreshPost-401-schema-data' type='hidden' value=''></input>
+                                </div>
+                            </div>
+
+                        </article>
+                      </div>
+                      <hr>
+                    <div id="api-Auth-registerPost">
+                      <article id="api-Auth-registerPost-0" data-group="User" data-name="registerPost" data-version="0">
+                        <div class="pull-left">
+                          <h1>registerPost</h1>
+                          <p>Регистрация</p>
+                        </div>
+                        <div class="pull-right"></div>
+                        <div class="clearfix"></div>
+                        <p></p>
+                        <p class="marked">Создаёт пользователя со статусом &#x60;pending&#x60;.  
+OTP-код для подтверждения **всегда &quot;1111&quot;** (пишется в лог).
+</p>
+                        <p></p>
+                        <br />
+                        <pre class="prettyprint language-html prettyprinted" data-type="post"><code><span class="pln">/register</span></code></pre>
+                        <p>
+                          <h3>Usage and SDK Samples</h3>
+                        </p>
+                        <ul class="nav nav-tabs nav-tabs-examples">
+                          <li class="active"><a href="#examples-Auth-registerPost-0-curl">Curl</a></li>
+                          <li class=""><a href="#examples-Auth-registerPost-0-java">Java</a></li>
+                          <li class=""><a href="#examples-Auth-registerPost-0-android">Android</a></li>
+                          <!--<li class=""><a href="#examples-Auth-registerPost-0-groovy">Groovy</a></li>-->
+                          <li class=""><a href="#examples-Auth-registerPost-0-objc">Obj-C</a></li>
+                          <li class=""><a href="#examples-Auth-registerPost-0-javascript">JavaScript</a></li>
+                          <!--<li class=""><a href="#examples-Auth-registerPost-0-angular">Angular</a></li>-->
+                          <li class=""><a href="#examples-Auth-registerPost-0-csharp">C#</a></li>
+                          <li class=""><a href="#examples-Auth-registerPost-0-php">PHP</a></li>
+                          <li class=""><a href="#examples-Auth-registerPost-0-perl">Perl</a></li>
+                          <li class=""><a href="#examples-Auth-registerPost-0-python">Python</a></li>
+                        </ul>
+
+                        <div class="tab-content">
+                          <div class="tab-pane active" id="examples-Auth-registerPost-0-curl">
+                           <pre class="prettyprint"><code class="language-bsh">curl -X POST\
+-H "Accept: application/json"\
+-H "Content-Type: application/json"\
+"http://localhost:8080/register"</code></pre>
+                          </div>
+                          <div class="tab-pane" id="examples-Auth-registerPost-0-java">
+                            <pre class="prettyprint"><code class="language-java">import io.swagger.client.*;
+import io.swagger.client.auth.*;
+import io.swagger.client.model.*;
+import io.swagger.client.api.AuthApi;
+
+import java.io.File;
+import java.util.*;
+
+public class AuthApiExample {
+
+    public static void main(String[] args) {
+        
+        AuthApi apiInstance = new AuthApi();
+        RegisterRequest body = {
+  "value" : {
+    "email" : "user@example.com",
+    "password" : "mypassword"
+  }
+}; // RegisterRequest | 
+        try {
+            apiInstance.registerPost(body);
+        } catch (ApiException e) {
+            System.err.println("Exception when calling AuthApi#registerPost");
+            e.printStackTrace();
+        }
+    }
+}</code></pre>
+                          </div>
+
+                          <div class="tab-pane" id="examples-Auth-registerPost-0-android">
+                            <pre class="prettyprint"><code class="language-java">import io.swagger.client.api.AuthApi;
+
+public class AuthApiExample {
+
+    public static void main(String[] args) {
+        AuthApi apiInstance = new AuthApi();
+        RegisterRequest body = {
+  "value" : {
+    "email" : "user@example.com",
+    "password" : "mypassword"
+  }
+}; // RegisterRequest | 
+        try {
+            apiInstance.registerPost(body);
+        } catch (ApiException e) {
+            System.err.println("Exception when calling AuthApi#registerPost");
+            e.printStackTrace();
+        }
+    }
+}</code></pre>
+                          </div>
+  <!--
+  <div class="tab-pane" id="examples-Auth-registerPost-0-groovy">
+  <pre class="prettyprint language-json prettyprinted" data-type="json"><code>Coming Soon!</code></pre>
+  </div> -->
+                            <div class="tab-pane" id="examples-Auth-registerPost-0-objc">
+                              <pre class="prettyprint"><code class="language-cpp">RegisterRequest *body = {
+  "value" : {
+    "email" : "user@example.com",
+    "password" : "mypassword"
+  }
+}; // 
+
+AuthApi *apiInstance = [[AuthApi alloc] init];
+
+// Регистрация
+[apiInstance registerPostWith:body
+              completionHandler: ^(NSError* error) {
+                            if (error) {
+                                NSLog(@"Error: %@", error);
+                            }
+                        }];
+</code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-Auth-registerPost-0-javascript">
+                              <pre class="prettyprint"><code class="language-js">var AuthApi = require('auth_api');
+
+var api = new AuthApi.AuthApi()
+var body = {
+  "value" : {
+    "email" : "user@example.com",
+    "password" : "mypassword"
+  }
+}; // {{RegisterRequest}} 
+
+var callback = function(error, data, response) {
+  if (error) {
+    console.error(error);
+  } else {
+    console.log('API called successfully.');
+  }
+};
+api.registerPost(body, callback);
+</code></pre>
+                            </div>
+
+                            <!--<div class="tab-pane" id="examples-Auth-registerPost-0-angular">
+              <pre class="prettyprint language-json prettyprinted" data-type="json"><code>Coming Soon!</code></pre>
+            </div>-->
+                            <div class="tab-pane" id="examples-Auth-registerPost-0-csharp">
+                              <pre class="prettyprint"><code class="language-cs">using System;
+using System.Diagnostics;
+using IO.Swagger.Api;
+using IO.Swagger.Client;
+using IO.Swagger.Model;
+
+namespace Example
+{
+    public class registerPostExample
+    {
+        public void main()
+        {
+
+            var apiInstance = new AuthApi();
+            var body = new RegisterRequest(); // RegisterRequest | 
+
+            try
+            {
+                // Регистрация
+                apiInstance.registerPost(body);
+            }
+            catch (Exception e)
+            {
+                Debug.Print("Exception when calling AuthApi.registerPost: " + e.Message );
+            }
+        }
+    }
+}
+</code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-Auth-registerPost-0-php">
+                              <pre class="prettyprint"><code class="language-php"><&#63;php
+require_once(__DIR__ . '/vendor/autoload.php');
+
+$api_instance = new Swagger\Client\ApiAuthApi();
+$body = {
+  "value" : {
+    "email" : "user@example.com",
+    "password" : "mypassword"
+  }
+}; // RegisterRequest | 
+
+try {
+    $api_instance->registerPost($body);
+} catch (Exception $e) {
+    echo 'Exception when calling AuthApi->registerPost: ', $e->getMessage(), PHP_EOL;
+}
+?></code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-Auth-registerPost-0-perl">
+                              <pre class="prettyprint"><code class="language-perl">use Data::Dumper;
+use WWW::SwaggerClient::Configuration;
+use WWW::SwaggerClient::AuthApi;
+
+my $api_instance = WWW::SwaggerClient::AuthApi->new();
+my $body = WWW::SwaggerClient::Object::RegisterRequest->new(); # RegisterRequest | 
+
+eval { 
+    $api_instance->registerPost(body => $body);
+};
+if ($@) {
+    warn "Exception when calling AuthApi->registerPost: $@\n";
+}</code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-Auth-registerPost-0-python">
+                              <pre class="prettyprint"><code class="language-python">from __future__ import print_statement
+import time
+import swagger_client
+from swagger_client.rest import ApiException
+from pprint import pprint
+
+# create an instance of the API class
+api_instance = swagger_client.AuthApi()
+body = {
+  "value" : {
+    "email" : "user@example.com",
+    "password" : "mypassword"
+  }
+} # RegisterRequest | 
+
+try: 
+    # Регистрация
+    api_instance.register_post(body)
+except ApiException as e:
+    print("Exception when calling AuthApi->registerPost: %s\n" % e)</code></pre>
+                            </div>
+                          </div>
+
+                          <h2>Parameters</h2>
+
+
+
+                            <div class="methodsubtabletitle">Body parameters</div>
+                            <table id="methodsubtable">
+                              <tr>
+                                <th width="150px">Name</th>
+                                <th>Description</th>
+                              </tr>
+                                <tr><td style="width:150px;">body <span style="color:red;">*</span></td>
+                                <td>
+                                
+                                
+                                <script>
+                                $(document).ready(function() {
+                                  var schemaWrapper = {
+  "content" : {
+    "application/json" : {
+      "schema" : {
+        "$ref" : "#/components/schemas/RegisterRequest"
+      },
+      "examples" : {
+        "ok" : {
+          "value" : {
+            "email" : "user@example.com",
+            "password" : "mypassword"
+          }
+        }
+      }
+    }
+  },
+  "required" : true
+};
+                                  var schema = schemaWrapper.content["application/json"].schema;
+                                  if (schema.$ref != null) {
+                                    schema = defsParser.$refs.get(schema.$ref);
+                                  } else {
+                                    schemaWrapper.components = {};
+                                    schemaWrapper.components.schemas = Object.assign({}, defs);
+                                    $RefParser.dereference(schemaWrapper).catch(function(err) {
+                                      console.log(err);
+                                    });
+                                  }
+                                
+                                  var view = new JSONSchemaView(schema,2,{isBodyParam: true});
+                                  var result = $('#d2e199_registerPost_body');
+                                  result.empty();
+                                  result.append(view.render());
+                                });
+                                </script>
+                                <div id="d2e199_registerPost_body"></div>
+                                </td>
+                                </tr>
+                            </table>
+
+
+
+                          <h2>Responses</h2>
+                            <h3> Status: 201 - Пользователь создан </h3>
+
+                            <ul class="nav nav-tabs nav-tabs-examples" >
+                            </ul>
+
+                            <div class="tab-content" style='margin-bottom: 10px;'>
+                            </div>
+
+                            <h3> Status: 400 - Ошибка (например, пользователь уже существует) </h3>
+
+                            <ul class="nav nav-tabs nav-tabs-examples" >
+                                <li class="active">
+                                  <a data-toggle="tab" href="#responses-registerPost-400-schema">Schema</a>
+                                </li>
+
+                            </ul>
+
+                            <div class="tab-content" style='margin-bottom: 10px;'>
+                                <div class="tab-pane active" id="responses-registerPost-400-schema">
+                                  <div id='responses-registerPost-400-schema-400' style="padding: 30px; border-left: 1px solid #eee; border-right: 1px solid #eee; border-bottom: 1px solid #eee;">
+                                    <script>
+                                      $(document).ready(function() {
+                                        var schemaWrapper = {
+  "description" : "Ошибка (например, пользователь уже существует)",
+  "content" : {
+    "application/json" : {
+      "schema" : {
+        "$ref" : "#/components/schemas/ErrorResponse"
+      }
+    }
+  }
+};
+                                        var schema = schemaWrapper.content["application/json"].schema;
+                                        if (schema.$ref != null) {
+                                          schema = defsParser.$refs.get(schema.$ref);
+                                        } else {
+                                          schemaWrapper.components = {};
+                                          schemaWrapper.components.schemas = Object.assign({}, defs);
+                                          $RefParser.dereference(schemaWrapper).catch(function(err) {
+                                            console.log(err);
+                                          });
+                                        }
+
+                                        //console.log(JSON.stringify(schema));
+                                        var view = new JSONSchemaView(schema, 3);
+                                        $('#responses-registerPost-400-schema-data').val(stringify(schema));
+                                        var result = $('#responses-registerPost-400-schema-400');
+                                        result.empty();
+                                        result.append(view.render());
+                                      });
+                                    </script>
+                                  </div>
+                                  <input id='responses-registerPost-400-schema-data' type='hidden' value=''></input>
+                                </div>
+                            </div>
+
+                        </article>
+                      </div>
+                      <hr>
+                    <div id="api-Auth-verifyOtpPost">
+                      <article id="api-Auth-verifyOtpPost-0" data-group="User" data-name="verifyOtpPost" data-version="0">
+                        <div class="pull-left">
+                          <h1>verifyOtpPost</h1>
+                          <p>Подтверждение e-mail по OTP</p>
+                        </div>
+                        <div class="pull-right"></div>
+                        <div class="clearfix"></div>
+                        <p></p>
+                        <p class="marked">Проверяет OTP. На данный момент код **жёстко равен &quot;1111&quot;**.
+При успехе активирует пользователя (status&#x3D;&#x60;active&#x60;).
+</p>
+                        <p></p>
+                        <br />
+                        <pre class="prettyprint language-html prettyprinted" data-type="post"><code><span class="pln">/verify-otp</span></code></pre>
+                        <p>
+                          <h3>Usage and SDK Samples</h3>
+                        </p>
+                        <ul class="nav nav-tabs nav-tabs-examples">
+                          <li class="active"><a href="#examples-Auth-verifyOtpPost-0-curl">Curl</a></li>
+                          <li class=""><a href="#examples-Auth-verifyOtpPost-0-java">Java</a></li>
+                          <li class=""><a href="#examples-Auth-verifyOtpPost-0-android">Android</a></li>
+                          <!--<li class=""><a href="#examples-Auth-verifyOtpPost-0-groovy">Groovy</a></li>-->
+                          <li class=""><a href="#examples-Auth-verifyOtpPost-0-objc">Obj-C</a></li>
+                          <li class=""><a href="#examples-Auth-verifyOtpPost-0-javascript">JavaScript</a></li>
+                          <!--<li class=""><a href="#examples-Auth-verifyOtpPost-0-angular">Angular</a></li>-->
+                          <li class=""><a href="#examples-Auth-verifyOtpPost-0-csharp">C#</a></li>
+                          <li class=""><a href="#examples-Auth-verifyOtpPost-0-php">PHP</a></li>
+                          <li class=""><a href="#examples-Auth-verifyOtpPost-0-perl">Perl</a></li>
+                          <li class=""><a href="#examples-Auth-verifyOtpPost-0-python">Python</a></li>
+                        </ul>
+
+                        <div class="tab-content">
+                          <div class="tab-pane active" id="examples-Auth-verifyOtpPost-0-curl">
+                           <pre class="prettyprint"><code class="language-bsh">curl -X POST\
+-H "Accept: application/json"\
+-H "Content-Type: application/json"\
+"http://localhost:8080/verify-otp"</code></pre>
+                          </div>
+                          <div class="tab-pane" id="examples-Auth-verifyOtpPost-0-java">
+                            <pre class="prettyprint"><code class="language-java">import io.swagger.client.*;
+import io.swagger.client.auth.*;
+import io.swagger.client.model.*;
+import io.swagger.client.api.AuthApi;
+
+import java.io.File;
+import java.util.*;
+
+public class AuthApiExample {
+
+    public static void main(String[] args) {
+        
+        AuthApi apiInstance = new AuthApi();
+        VerifyOtpRequest body = {
+  "value" : {
+    "email" : "user@example.com",
+    "code" : "1111"
+  }
+}; // VerifyOtpRequest | 
+        try {
+            apiInstance.verifyOtpPost(body);
+        } catch (ApiException e) {
+            System.err.println("Exception when calling AuthApi#verifyOtpPost");
+            e.printStackTrace();
+        }
+    }
+}</code></pre>
+                          </div>
+
+                          <div class="tab-pane" id="examples-Auth-verifyOtpPost-0-android">
+                            <pre class="prettyprint"><code class="language-java">import io.swagger.client.api.AuthApi;
+
+public class AuthApiExample {
+
+    public static void main(String[] args) {
+        AuthApi apiInstance = new AuthApi();
+        VerifyOtpRequest body = {
+  "value" : {
+    "email" : "user@example.com",
+    "code" : "1111"
+  }
+}; // VerifyOtpRequest | 
+        try {
+            apiInstance.verifyOtpPost(body);
+        } catch (ApiException e) {
+            System.err.println("Exception when calling AuthApi#verifyOtpPost");
+            e.printStackTrace();
+        }
+    }
+}</code></pre>
+                          </div>
+  <!--
+  <div class="tab-pane" id="examples-Auth-verifyOtpPost-0-groovy">
+  <pre class="prettyprint language-json prettyprinted" data-type="json"><code>Coming Soon!</code></pre>
+  </div> -->
+                            <div class="tab-pane" id="examples-Auth-verifyOtpPost-0-objc">
+                              <pre class="prettyprint"><code class="language-cpp">VerifyOtpRequest *body = {
+  "value" : {
+    "email" : "user@example.com",
+    "code" : "1111"
+  }
+}; // 
+
+AuthApi *apiInstance = [[AuthApi alloc] init];
+
+// Подтверждение e-mail по OTP
+[apiInstance verifyOtpPostWith:body
+              completionHandler: ^(NSError* error) {
+                            if (error) {
+                                NSLog(@"Error: %@", error);
+                            }
+                        }];
+</code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-Auth-verifyOtpPost-0-javascript">
+                              <pre class="prettyprint"><code class="language-js">var AuthApi = require('auth_api');
+
+var api = new AuthApi.AuthApi()
+var body = {
+  "value" : {
+    "email" : "user@example.com",
+    "code" : "1111"
+  }
+}; // {{VerifyOtpRequest}} 
+
+var callback = function(error, data, response) {
+  if (error) {
+    console.error(error);
+  } else {
+    console.log('API called successfully.');
+  }
+};
+api.verifyOtpPost(body, callback);
+</code></pre>
+                            </div>
+
+                            <!--<div class="tab-pane" id="examples-Auth-verifyOtpPost-0-angular">
+              <pre class="prettyprint language-json prettyprinted" data-type="json"><code>Coming Soon!</code></pre>
+            </div>-->
+                            <div class="tab-pane" id="examples-Auth-verifyOtpPost-0-csharp">
+                              <pre class="prettyprint"><code class="language-cs">using System;
+using System.Diagnostics;
+using IO.Swagger.Api;
+using IO.Swagger.Client;
+using IO.Swagger.Model;
+
+namespace Example
+{
+    public class verifyOtpPostExample
+    {
+        public void main()
+        {
+
+            var apiInstance = new AuthApi();
+            var body = new VerifyOtpRequest(); // VerifyOtpRequest | 
+
+            try
+            {
+                // Подтверждение e-mail по OTP
+                apiInstance.verifyOtpPost(body);
+            }
+            catch (Exception e)
+            {
+                Debug.Print("Exception when calling AuthApi.verifyOtpPost: " + e.Message );
+            }
+        }
+    }
+}
+</code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-Auth-verifyOtpPost-0-php">
+                              <pre class="prettyprint"><code class="language-php"><&#63;php
+require_once(__DIR__ . '/vendor/autoload.php');
+
+$api_instance = new Swagger\Client\ApiAuthApi();
+$body = {
+  "value" : {
+    "email" : "user@example.com",
+    "code" : "1111"
+  }
+}; // VerifyOtpRequest | 
+
+try {
+    $api_instance->verifyOtpPost($body);
+} catch (Exception $e) {
+    echo 'Exception when calling AuthApi->verifyOtpPost: ', $e->getMessage(), PHP_EOL;
+}
+?></code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-Auth-verifyOtpPost-0-perl">
+                              <pre class="prettyprint"><code class="language-perl">use Data::Dumper;
+use WWW::SwaggerClient::Configuration;
+use WWW::SwaggerClient::AuthApi;
+
+my $api_instance = WWW::SwaggerClient::AuthApi->new();
+my $body = WWW::SwaggerClient::Object::VerifyOtpRequest->new(); # VerifyOtpRequest | 
+
+eval { 
+    $api_instance->verifyOtpPost(body => $body);
+};
+if ($@) {
+    warn "Exception when calling AuthApi->verifyOtpPost: $@\n";
+}</code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-Auth-verifyOtpPost-0-python">
+                              <pre class="prettyprint"><code class="language-python">from __future__ import print_statement
+import time
+import swagger_client
+from swagger_client.rest import ApiException
+from pprint import pprint
+
+# create an instance of the API class
+api_instance = swagger_client.AuthApi()
+body = {
+  "value" : {
+    "email" : "user@example.com",
+    "code" : "1111"
+  }
+} # VerifyOtpRequest | 
+
+try: 
+    # Подтверждение e-mail по OTP
+    api_instance.verify_otp_post(body)
+except ApiException as e:
+    print("Exception when calling AuthApi->verifyOtpPost: %s\n" % e)</code></pre>
+                            </div>
+                          </div>
+
+                          <h2>Parameters</h2>
+
+
+
+                            <div class="methodsubtabletitle">Body parameters</div>
+                            <table id="methodsubtable">
+                              <tr>
+                                <th width="150px">Name</th>
+                                <th>Description</th>
+                              </tr>
+                                <tr><td style="width:150px;">body <span style="color:red;">*</span></td>
+                                <td>
+                                
+                                
+                                <script>
+                                $(document).ready(function() {
+                                  var schemaWrapper = {
+  "content" : {
+    "application/json" : {
+      "schema" : {
+        "$ref" : "#/components/schemas/VerifyOtpRequest"
+      },
+      "examples" : {
+        "ok" : {
+          "value" : {
+            "email" : "user@example.com",
+            "code" : "1111"
+          }
+        }
+      }
+    }
+  },
+  "required" : true
+};
+                                  var schema = schemaWrapper.content["application/json"].schema;
+                                  if (schema.$ref != null) {
+                                    schema = defsParser.$refs.get(schema.$ref);
+                                  } else {
+                                    schemaWrapper.components = {};
+                                    schemaWrapper.components.schemas = Object.assign({}, defs);
+                                    $RefParser.dereference(schemaWrapper).catch(function(err) {
+                                      console.log(err);
+                                    });
+                                  }
+                                
+                                  var view = new JSONSchemaView(schema,2,{isBodyParam: true});
+                                  var result = $('#d2e199_verifyOtpPost_body');
+                                  result.empty();
+                                  result.append(view.render());
+                                });
+                                </script>
+                                <div id="d2e199_verifyOtpPost_body"></div>
+                                </td>
+                                </tr>
+                            </table>
+
+
+
+                          <h2>Responses</h2>
+                            <h3> Status: 200 - Успешно подтверждён </h3>
+
+                            <ul class="nav nav-tabs nav-tabs-examples" >
+                            </ul>
+
+                            <div class="tab-content" style='margin-bottom: 10px;'>
+                            </div>
+
+                            <h3> Status: 400 - Неверный код или пользователь не найден </h3>
+
+                            <ul class="nav nav-tabs nav-tabs-examples" >
+                                <li class="active">
+                                  <a data-toggle="tab" href="#responses-verifyOtpPost-400-schema">Schema</a>
+                                </li>
+
+                            </ul>
+
+                            <div class="tab-content" style='margin-bottom: 10px;'>
+                                <div class="tab-pane active" id="responses-verifyOtpPost-400-schema">
+                                  <div id='responses-verifyOtpPost-400-schema-400' style="padding: 30px; border-left: 1px solid #eee; border-right: 1px solid #eee; border-bottom: 1px solid #eee;">
+                                    <script>
+                                      $(document).ready(function() {
+                                        var schemaWrapper = {
+  "description" : "Неверный код или пользователь не найден",
+  "content" : {
+    "application/json" : {
+      "schema" : {
+        "$ref" : "#/components/schemas/ErrorResponse"
+      }
+    }
+  }
+};
+                                        var schema = schemaWrapper.content["application/json"].schema;
+                                        if (schema.$ref != null) {
+                                          schema = defsParser.$refs.get(schema.$ref);
+                                        } else {
+                                          schemaWrapper.components = {};
+                                          schemaWrapper.components.schemas = Object.assign({}, defs);
+                                          $RefParser.dereference(schemaWrapper).catch(function(err) {
+                                            console.log(err);
+                                          });
+                                        }
+
+                                        //console.log(JSON.stringify(schema));
+                                        var view = new JSONSchemaView(schema, 3);
+                                        $('#responses-verifyOtpPost-400-schema-data').val(stringify(schema));
+                                        var result = $('#responses-verifyOtpPost-400-schema-400');
+                                        result.empty();
+                                        result.append(view.render());
+                                      });
+                                    </script>
+                                  </div>
+                                  <input id='responses-verifyOtpPost-400-schema-data' type='hidden' value=''></input>
+                                </div>
+                            </div>
+
+                        </article>
+                      </div>
+                      <hr>
+                  </section>
           </div>
           <div id="footer">
             <div id="api-_footer">

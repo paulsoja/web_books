@@ -2,29 +2,56 @@ package com.spasinnya.data.service
 
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
-import com.spasinnya.domain.model.User
-import com.spasinnya.domain.repository.JwtService
+import com.spasinnya.domain.model.auth.IssuedTokens
+import com.spasinnya.domain.port.TokenService
+import java.security.MessageDigest
 import java.util.*
+import kotlin.time.Clock
+import kotlin.time.Duration.Companion.days
+import kotlin.time.Duration.Companion.hours
+import kotlin.time.ExperimentalTime
+import kotlin.time.Instant
 
-class JwtServiceImpl : JwtService {
+@OptIn(ExperimentalTime::class)
+class JwtServiceImpl : TokenService {
 
     private val secret = System.getenv("JWT_SECRET") ?: error("JWT_SECRET is missing!")
     private val issuer = System.getenv("JWT_ISSUER") ?: error("JWT_ISSUER is missing!")
     private val algorithm = Algorithm.HMAC256(secret)
 
-    override fun generateAccessToken(user: User): String {
-        return JWT.create()
+    private val accessTtl = 1.hours
+    private val refreshTtl = 7.days
+
+    override fun issueTokens(userId: Long, email: String): IssuedTokens {
+        val now: Instant = Clock.System.now()
+        val accessExp: Instant = now + accessTtl
+        val refreshExp: Instant = now + refreshTtl
+
+        val accessToken = JWT.create()
             .withIssuer(issuer)
-            .withClaim("email", user.email)
-            .withExpiresAt(Date(System.currentTimeMillis() + 3600 * 1000))
+            .withSubject(userId.toString())
+            .withClaim("email", email)
+            .withExpiresAt(Date(accessExp.toEpochMilliseconds()))
             .sign(algorithm)
+
+        val refreshToken = JWT.create()
+            .withIssuer(issuer)
+            .withSubject(userId.toString())
+            .withClaim("email", email)
+            .withExpiresAt(Date(refreshExp.toEpochMilliseconds()))
+            .sign(algorithm)
+
+        return IssuedTokens(
+            accessToken = accessToken,
+            accessExpiresAt = accessExp,
+            refreshToken = refreshToken,
+            refreshTokenHash = sha256(refreshToken),
+            refreshExpiresAt = refreshExp
+        )
     }
 
-    override fun generateRefreshToken(user: User): String {
-        return JWT.create()
-            .withIssuer(issuer)
-            .withClaim("email", user.email)
-            .withExpiresAt(Date(System.currentTimeMillis() + 7 * 24 * 3600 * 1000))
-            .sign(algorithm)
+    private fun sha256(value: String): String {
+        val d = MessageDigest.getInstance("SHA-256").digest(value.toByteArray())
+        return d.joinToString("") { "%02x".format(it) }
     }
 }
