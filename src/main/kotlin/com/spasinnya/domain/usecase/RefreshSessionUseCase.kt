@@ -1,5 +1,6 @@
 package com.spasinnya.domain.usecase
 
+import com.spasinnya.data.extension.sha256
 import com.spasinnya.domain.model.auth.RefreshResult
 import com.spasinnya.domain.port.TokenService
 import com.spasinnya.domain.repository.RefreshTokenRepository
@@ -15,12 +16,14 @@ class RefreshSessionUseCase(
 ) {
 
     suspend operator fun invoke(
-        refreshTokenHash: String,   // ты передаёшь ХЭШ (а не сырое значение)
+        refreshToken: String,   // ты передаёшь ХЭШ (а не сырое значение)
         userAgent: String? = null,
         ip: String? = null,
         deviceId: String? = null
     ): Result<RefreshResult> = runCatching {
-        val saved = refreshRepo.findByHash(refreshTokenHash).getOrThrow() ?: error("Invalid refresh")
+        val hash = sha256(refreshToken)
+
+        val saved = refreshRepo.findByHash(hash).getOrThrow() ?: error("Invalid refresh")
         require(saved.isActive) { "Refresh revoked" }
 
         val now = Clock.System.now()

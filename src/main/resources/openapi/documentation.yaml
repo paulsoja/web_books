@@ -43,23 +43,21 @@ paths:
 
   /verify-otp:
     post:
-      tags: [Auth]
-      summary: Подтверждение e-mail по OTP
-      description: |
-        Проверяет OTP. На данный момент код **жёстко равен "1111"**.
-        При успехе активирует пользователя (status=`active`).
+      tags: [ Auth ]
+      summary: Подтверждение e-mail по OTP (и мгновенная выдача токенов)
       requestBody:
         required: true
         content:
           application/json:
             schema:
               $ref: '#/components/schemas/VerifyOtpRequest'
-            examples:
-              ok:
-                value: { email: "user@example.com", code: "1111" }
       responses:
         '200':
-          description: Успешно подтверждён
+          description: Успешно подтверждён. Возвращает access/refresh токены.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
         '400':
           description: Неверный код или пользователь не найден
           content:

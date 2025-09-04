@@ -2,9 +2,9 @@ package com.spasinnya.data.service
 
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
+import com.spasinnya.data.extension.sha256
 import com.spasinnya.domain.model.auth.IssuedTokens
 import com.spasinnya.domain.port.TokenService
-import java.security.MessageDigest
 import java.util.*
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.days
@@ -48,10 +48,5 @@ class JwtServiceImpl : TokenService {
             refreshTokenHash = sha256(refreshToken),
             refreshExpiresAt = refreshExp
         )
-    }
-
-    private fun sha256(value: String): String {
-        val d = MessageDigest.getInstance("SHA-256").digest(value.toByteArray())
-        return d.joinToString("") { "%02x".format(it) }
     }
 }

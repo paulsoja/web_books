@@ -4,6 +4,7 @@ package com.spasinnya.presentation.routes
 
 import com.spasinnya.domain.usecase.*
 import com.spasinnya.presentation.model.LoginRequest
+import com.spasinnya.presentation.model.RefreshRequest
 import com.spasinnya.presentation.model.RegisterRequest
 import com.spasinnya.presentation.model.TokenResponse
 import com.spasinnya.presentation.model.VerifyOtpRequest
@@ -65,8 +66,8 @@ fun Route.authRoutes(
     }
 
     post("/refresh") {
-        val token = call.request.queryParameters["refreshToken"] ?: return@post call.respond(HttpStatusCode.BadRequest)
-        val result = refreshSession(token)
+        val req = call.receive<RefreshRequest>()
+        val result = refreshSession(req.refreshToken)
         result.onSuccess {
             call.respond(TokenResponse(
                 accessToken = it.accessToken,
@@ -80,8 +81,8 @@ fun Route.authRoutes(
     }
 
     post("/logout") {
-        val token = call.request.queryParameters["refreshToken"] ?: return@post call.respond(HttpStatusCode.BadRequest)
-        val result = logout.revokeSingle(token)
+        val token = call.receive<RefreshRequest>().refreshToken
+        val result = logout.revokeSingleRaw(token)   // <-- сырое значение
         result.onSuccess { call.respond(HttpStatusCode.OK) }
             .onFailure { call.respond(HttpStatusCode.BadRequest, it.message ?: "Error") }
     }
