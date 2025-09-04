@@ -33,7 +33,11 @@ fun Application.configureDatabases() {
 
     val jwtService: TokenService = JwtServiceImpl()
 
-    val verifyOtp = VerifyOtpUseCase(users = userRepository)
+    val verifyOtp = VerifyOtpUseCase(
+        users = userRepository,
+        refresh = refreshRepository,
+        tokens = jwtService
+    )
     val register = RegisterUserUseCase(users = userRepository, hasher = passwordHasher)
     val refreshSession =
         RefreshSessionUseCase(users = userRepository, refreshRepo = refreshRepository, tokens = jwtService)

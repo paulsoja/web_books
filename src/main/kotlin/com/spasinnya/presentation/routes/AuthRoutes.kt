@@ -31,7 +31,16 @@ fun Route.authRoutes(
     post("/verify-otp") {
         val req = call.receive<VerifyOtpRequest>()
         val result = verifyOtp(req.email, req.code)
-        result.onSuccess { call.respond(HttpStatusCode.OK) }
+        result.onSuccess {
+            call.respond(
+                TokenResponse(
+                    accessToken = it.accessToken,
+                    accessExpiresAt = it.accessExpiresAt.toString(),
+                    refreshToken = it.refreshToken,
+                    refreshExpiresAt = it.refreshExpiresAt.toString()
+                )
+            )
+        }
             .onFailure { call.respond(HttpStatusCode.BadRequest, it.message ?: "Error") }
     }
 
