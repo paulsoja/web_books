@@ -2326,14 +2326,12 @@ except ApiException as e:
                       <article id="api-Auth-verifyOtpPost-0" data-group="User" data-name="verifyOtpPost" data-version="0">
                         <div class="pull-left">
                           <h1>verifyOtpPost</h1>
-                          <p>Подтверждение e-mail по OTP</p>
+                          <p>Подтверждение e-mail по OTP (и мгновенная выдача токенов)</p>
                         </div>
                         <div class="pull-right"></div>
                         <div class="clearfix"></div>
                         <p></p>
-                        <p class="marked">Проверяет OTP. На данный момент код **жёстко равен &quot;1111&quot;**.
-При успехе активирует пользователя (status&#x3D;&#x60;active&#x60;).
-</p>
+                        <p class="marked"></p>
                         <p></p>
                         <br />
                         <pre class="prettyprint language-html prettyprinted" data-type="post"><code><span class="pln">/verify-otp</span></code></pre>
@@ -2375,14 +2373,10 @@ public class AuthApiExample {
     public static void main(String[] args) {
         
         AuthApi apiInstance = new AuthApi();
-        VerifyOtpRequest body = {
-  "value" : {
-    "email" : "user@example.com",
-    "code" : "1111"
-  }
-}; // VerifyOtpRequest | 
+        VerifyOtpRequest body = ; // VerifyOtpRequest | 
         try {
-            apiInstance.verifyOtpPost(body);
+            TokenResponse result = apiInstance.verifyOtpPost(body);
+            System.out.println(result);
         } catch (ApiException e) {
             System.err.println("Exception when calling AuthApi#verifyOtpPost");
             e.printStackTrace();
@@ -2398,14 +2392,10 @@ public class AuthApiExample {
 
     public static void main(String[] args) {
         AuthApi apiInstance = new AuthApi();
-        VerifyOtpRequest body = {
-  "value" : {
-    "email" : "user@example.com",
-    "code" : "1111"
-  }
-}; // VerifyOtpRequest | 
+        VerifyOtpRequest body = ; // VerifyOtpRequest | 
         try {
-            apiInstance.verifyOtpPost(body);
+            TokenResponse result = apiInstance.verifyOtpPost(body);
+            System.out.println(result);
         } catch (ApiException e) {
             System.err.println("Exception when calling AuthApi#verifyOtpPost");
             e.printStackTrace();
@@ -2418,18 +2408,16 @@ public class AuthApiExample {
   <pre class="prettyprint language-json prettyprinted" data-type="json"><code>Coming Soon!</code></pre>
   </div> -->
                             <div class="tab-pane" id="examples-Auth-verifyOtpPost-0-objc">
-                              <pre class="prettyprint"><code class="language-cpp">VerifyOtpRequest *body = {
-  "value" : {
-    "email" : "user@example.com",
-    "code" : "1111"
-  }
-}; // 
+                              <pre class="prettyprint"><code class="language-cpp">VerifyOtpRequest *body = ; // 
 
 AuthApi *apiInstance = [[AuthApi alloc] init];
 
-// Подтверждение e-mail по OTP
+// Подтверждение e-mail по OTP (и мгновенная выдача токенов)
 [apiInstance verifyOtpPostWith:body
-              completionHandler: ^(NSError* error) {
+              completionHandler: ^(TokenResponse output, NSError* error) {
+                            if (output) {
+                                NSLog(@"%@", output);
+                            }
                             if (error) {
                                 NSLog(@"Error: %@", error);
                             }
@@ -2441,18 +2429,13 @@ AuthApi *apiInstance = [[AuthApi alloc] init];
                               <pre class="prettyprint"><code class="language-js">var AuthApi = require('auth_api');
 
 var api = new AuthApi.AuthApi()
-var body = {
-  "value" : {
-    "email" : "user@example.com",
-    "code" : "1111"
-  }
-}; // {{VerifyOtpRequest}} 
+var body = ; // {{VerifyOtpRequest}} 
 
 var callback = function(error, data, response) {
   if (error) {
     console.error(error);
   } else {
-    console.log('API called successfully.');
+    console.log('API called successfully. Returned data: ' + data);
   }
 };
 api.verifyOtpPost(body, callback);
@@ -2481,8 +2464,9 @@ namespace Example
 
             try
             {
-                // Подтверждение e-mail по OTP
-                apiInstance.verifyOtpPost(body);
+                // Подтверждение e-mail по OTP (и мгновенная выдача токенов)
+                TokenResponse result = apiInstance.verifyOtpPost(body);
+                Debug.WriteLine(result);
             }
             catch (Exception e)
             {
@@ -2499,15 +2483,11 @@ namespace Example
 require_once(__DIR__ . '/vendor/autoload.php');
 
 $api_instance = new Swagger\Client\ApiAuthApi();
-$body = {
-  "value" : {
-    "email" : "user@example.com",
-    "code" : "1111"
-  }
-}; // VerifyOtpRequest | 
+$body = ; // VerifyOtpRequest | 
 
 try {
-    $api_instance->verifyOtpPost($body);
+    $result = $api_instance->verifyOtpPost($body);
+    print_r($result);
 } catch (Exception $e) {
     echo 'Exception when calling AuthApi->verifyOtpPost: ', $e->getMessage(), PHP_EOL;
 }
@@ -2523,7 +2503,8 @@ my $api_instance = WWW::SwaggerClient::AuthApi->new();
 my $body = WWW::SwaggerClient::Object::VerifyOtpRequest->new(); # VerifyOtpRequest | 
 
 eval { 
-    $api_instance->verifyOtpPost(body => $body);
+    my $result = $api_instance->verifyOtpPost(body => $body);
+    print Dumper($result);
 };
 if ($@) {
     warn "Exception when calling AuthApi->verifyOtpPost: $@\n";
@@ -2539,16 +2520,12 @@ from pprint import pprint
 
 # create an instance of the API class
 api_instance = swagger_client.AuthApi()
-body = {
-  "value" : {
-    "email" : "user@example.com",
-    "code" : "1111"
-  }
-} # VerifyOtpRequest | 
+body =  # VerifyOtpRequest | 
 
 try: 
-    # Подтверждение e-mail по OTP
-    api_instance.verify_otp_post(body)
+    # Подтверждение e-mail по OTP (и мгновенная выдача токенов)
+    api_response = api_instance.verify_otp_post(body)
+    pprint(api_response)
 except ApiException as e:
     print("Exception when calling AuthApi->verifyOtpPost: %s\n" % e)</code></pre>
                             </div>
@@ -2575,14 +2552,6 @@ except ApiException as e:
     "application/json" : {
       "schema" : {
         "$ref" : "#/components/schemas/VerifyOtpRequest"
-      },
-      "examples" : {
-        "ok" : {
-          "value" : {
-            "email" : "user@example.com",
-            "code" : "1111"
-          }
-        }
       }
     }
   },
@@ -2613,12 +2582,52 @@ except ApiException as e:
 
 
                           <h2>Responses</h2>
-                            <h3> Status: 200 - Успешно подтверждён </h3>
+                            <h3> Status: 200 - Успешно подтверждён. Возвращает access/refresh токены. </h3>
 
                             <ul class="nav nav-tabs nav-tabs-examples" >
+                                <li class="active">
+                                  <a data-toggle="tab" href="#responses-verifyOtpPost-200-schema">Schema</a>
+                                </li>
+
                             </ul>
 
                             <div class="tab-content" style='margin-bottom: 10px;'>
+                                <div class="tab-pane active" id="responses-verifyOtpPost-200-schema">
+                                  <div id='responses-verifyOtpPost-200-schema-200' style="padding: 30px; border-left: 1px solid #eee; border-right: 1px solid #eee; border-bottom: 1px solid #eee;">
+                                    <script>
+                                      $(document).ready(function() {
+                                        var schemaWrapper = {
+  "description" : "Успешно подтверждён. Возвращает access/refresh токены.",
+  "content" : {
+    "application/json" : {
+      "schema" : {
+        "$ref" : "#/components/schemas/TokenResponse"
+      }
+    }
+  }
+};
+                                        var schema = schemaWrapper.content["application/json"].schema;
+                                        if (schema.$ref != null) {
+                                          schema = defsParser.$refs.get(schema.$ref);
+                                        } else {
+                                          schemaWrapper.components = {};
+                                          schemaWrapper.components.schemas = Object.assign({}, defs);
+                                          $RefParser.dereference(schemaWrapper).catch(function(err) {
+                                            console.log(err);
+                                          });
+                                        }
+
+                                        //console.log(JSON.stringify(schema));
+                                        var view = new JSONSchemaView(schema, 3);
+                                        $('#responses-verifyOtpPost-200-schema-data').val(stringify(schema));
+                                        var result = $('#responses-verifyOtpPost-200-schema-200');
+                                        result.empty();
+                                        result.append(view.render());
+                                      });
+                                    </script>
+                                  </div>
+                                  <input id='responses-verifyOtpPost-200-schema-data' type='hidden' value=''></input>
+                                </div>
                             </div>
 
                             <h3> Status: 400 - Неверный код или пользователь не найден </h3>

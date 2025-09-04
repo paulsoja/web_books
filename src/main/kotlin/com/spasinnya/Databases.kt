@@ -47,7 +47,7 @@ fun Application.configureDatabases() {
         hasher = passwordHasher,
         tokens = jwtService
     )
-    val logout = LogoutUseCase(refreshRepo = refreshRepository)
+    val logout = LogoutUseCase(refreshRepo = refreshRepository, tokens = jwtService)
 
     routing {
         authRoutes(
