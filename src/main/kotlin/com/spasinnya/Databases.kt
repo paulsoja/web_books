@@ -1,5 +1,6 @@
 package com.spasinnya
 
+import com.spasinnya.data.repository.BookRepositoryImpl
 import com.spasinnya.data.repository.RefreshTokenDataRepository
 import com.spasinnya.data.repository.UserDataRepository
 import com.spasinnya.data.repository.database.db.buildHikariFromEnv
@@ -10,10 +11,14 @@ import com.spasinnya.data.service.security.BcryptPasswordHasher
 import com.spasinnya.domain.model.book.Book
 import com.spasinnya.domain.port.PasswordHasher
 import com.spasinnya.domain.port.TokenService
+import com.spasinnya.domain.repository.BookRepository
 import com.spasinnya.domain.repository.RefreshTokenRepository
+import com.spasinnya.domain.repository.UserRepository
 import com.spasinnya.domain.usecase.*
 import com.spasinnya.presentation.routes.authRoutes
+import com.spasinnya.presentation.routes.bookRoutes
 import io.ktor.server.application.*
+import io.ktor.server.auth.authenticate
 import io.ktor.server.plugins.openapi.*
 import io.ktor.server.plugins.swagger.*
 import io.ktor.server.response.*
@@ -28,8 +33,9 @@ fun Application.configureDatabases() {
 
     val passwordHasher: PasswordHasher = BcryptPasswordHasher()
 
-    val userRepository = UserDataRepository(database)
+    val userRepository: UserRepository = UserDataRepository(database)
     val refreshRepository: RefreshTokenRepository = RefreshTokenDataRepository(database)
+    val bookRepository: BookRepository = BookRepositoryImpl()
 
     val jwtService: TokenService = JwtServiceImpl()
 
@@ -57,6 +63,11 @@ fun Application.configureDatabases() {
             refreshSession = refreshSession,
             logout = logout
         )
+        authenticate("auth-jwt") {
+            bookRoutes(
+                bookRepository = bookRepository
+            )
+        }
     }
 
     routing {
