@@ -73,6 +73,16 @@ class UserDataRepository(
         Unit
     }
 
+    override suspend fun createEmptyProfile(userId: Long): Result<Unit> = database.runDb {
+        UserProfiles.insert {
+            it[UserProfiles.userId] = userId
+            it[firstName] = null
+            it[lastName] = null
+            it[avatarUrl] = null
+            it[locale] = null
+        }
+    }
+
     override suspend fun findUserProfile(userId: Long): Result<UserProfile?> = database.runDb {
         (Users leftJoin UserProfiles)
             .selectAll()

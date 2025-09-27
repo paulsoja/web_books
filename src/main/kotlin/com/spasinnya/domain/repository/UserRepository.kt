@@ -10,5 +10,6 @@ interface UserRepository {
     suspend fun setConfirmedAt(userId: Long): Result<Unit>
     suspend fun updatePassword(userId: Long, passwordHash: String): Result<Unit>
     suspend fun updateLastLogin(userId: Long): Result<Unit>
+    suspend fun createEmptyProfile(userId: Long): Result<Unit>
     suspend fun findUserProfile(userId: Long): Result<UserProfile?>
 }

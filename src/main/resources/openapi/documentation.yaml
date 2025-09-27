@@ -4,24 +4,29 @@ info:
   version: "1.0.0"
   description: |
     Минимальный Auth API для регистрации, подтверждения OTP (замокано), логина, рефреша и логаута.
-    ⚠️ OTP сейчас **замокан** и всегда равен `"1111"`.
-
+    ⚠️ OTP сейчас замокан и всегда равен "1111".
 servers:
+  - url: https://web-books-1.onrender.com
+    description: Render (prod)
   - url: http://localhost:8080
     description: Local dev
 
 tags:
   - name: Auth
     description: Регистрация, подтверждение, логин/рефреш/логаут
+  - name: Books
+    description: Работа с книгами
+  - name: Users
+    description: Профиль текущего пользователя
 
 paths:
   /register:
     post:
-      tags: [ Auth ]
+      tags: [Auth]
       summary: Регистрация
       description: |
-        Создаёт пользователя со статусом `pending`.  
-        OTP-код для подтверждения **всегда "1111"** (пишется в лог).
+        Создаёт пользователя со статусом `pending`.
+        OTP-код для подтверждения всегда "1111" (пишется в лог).
       requestBody:
         required: true
         content:
@@ -43,7 +48,7 @@ paths:
 
   /verify-otp:
     post:
-      tags: [ Auth ]
+      tags: [Auth]
       summary: Подтверждение e-mail по OTP (и мгновенная выдача токенов)
       requestBody:
         required: true
@@ -67,7 +72,7 @@ paths:
 
   /login:
     post:
-      tags: [ Auth ]
+      tags: [Auth]
       summary: Логин по email и паролю
       description: Возвращает пару токенов (access/refresh).
       requestBody:
@@ -102,10 +107,10 @@ paths:
 
   /refresh:
     post:
-      tags: [ Auth ]
+      tags: [Auth]
       summary: Обновление access/refresh токенов
       description: |
-        Принимает **refreshToken** в теле, возвращает новую пару токенов.  
+        Принимает refreshToken в теле, возвращает новую пару токенов.
         Старый refresh обычно помечается неактивным (ротация).
       requestBody:
         required: true
@@ -132,7 +137,7 @@ paths:
 
   /logout:
     post:
-      tags: [ Auth ]
+      tags: [Auth]
       summary: Логаут (ревокация refresh-токена)
       description: Аннулирует переданный refresh-токен.
       requestBody:
@@ -145,8 +150,8 @@ paths:
               ok:
                 value: { refreshToken: "jwt-refresh" }
       responses:
-        '200':
-          description: Токен отозван
+        '204':
+          description: Токен отозван (без тела)
         '400':
           description: Не удалось отозвать токен
           content:
@@ -156,11 +161,11 @@ paths:
 
   /books:
     get:
-      tags: [ Books ]
+      tags: [Books]
       summary: Get list of books
       description: Returns all books. Requires valid JWT access token.
       security:
-        - bearerAuth: [ ]   # требуем токен именно для этой ручки
+        - bearerAuth: []
       responses:
         '200':
           description: List of books
@@ -186,21 +191,19 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: '#/components/schemas/ErrorResponse'
               examples:
                 unauthorized:
                   value:
                     message: "Unauthorized"
 
-
   /me:
     get:
-      tags:
-        - Users
+      tags: [Users]
       summary: Get current authenticated user
       description: Returns information about the current user. Requires a valid JWT access token.
       security:
-        - bearerAuth: [ ]
+        - bearerAuth: []
       responses:
         '200':
           description: Current user profile
@@ -219,8 +222,16 @@ paths:
                     avatarUrl: "https://cdn.example.com/avatars/42.png"
         '401':
           description: Unauthorized (missing or invalid token)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         '404':
           description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
 components:
   securitySchemes:
@@ -232,7 +243,7 @@ components:
   schemas:
     RegisterRequest:
       type: object
-      required: [ email, password ]
+      required: [email, password]
       properties:
         email:
           type: string
@@ -245,7 +256,7 @@ components:
 
     VerifyOtpRequest:
       type: object
-      required: [ email, code ]
+      required: [email, code]
       properties:
         email:
           type: string
@@ -258,7 +269,7 @@ components:
 
     LoginRequest:
       type: object
-      required: [ email, password ]
+      required: [email, password]
       properties:
         email:
           type: string
@@ -270,7 +281,7 @@ components:
 
     RefreshRequest:
       type: object
-      required: [ refreshToken ]
+      required: [refreshToken]
       properties:
         refreshToken:
           type: string
@@ -278,7 +289,7 @@ components:
 
     TokenResponse:
       type: object
-      required: [ accessToken, accessExpiresAt, refreshToken, refreshExpiresAt ]
+      required: [accessToken, accessExpiresAt, refreshToken, refreshExpiresAt]
       properties:
         accessToken:
           type: string
@@ -297,7 +308,7 @@ components:
 
     Book:
       type: object
-      required: [ id, title, author, createdAt ]
+      required: [id, title, author, createdAt]
       properties:
         id:
           type: integer
@@ -311,18 +322,10 @@ components:
         createdAt:
           type: string
           format: date-time
-      Error:
-        type: object
-        properties:
-          message:
-            type: string
 
     UserProfile:
       type: object
-      required:
-        - userId
-        - email
-        - role
+      required: [userId, email, role]
       properties:
         userId:
           type: integer
@@ -348,6 +351,8 @@ components:
 
     ErrorResponse:
       type: object
+      required: [message]
       properties:
         message:
           type: string
+          example: Something went wrong
