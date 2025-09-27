@@ -6,6 +6,7 @@ import com.spasinnya.data.repository.UserDataRepository
 import com.spasinnya.data.repository.database.db.buildHikariFromEnv
 import com.spasinnya.data.repository.database.db.connectAndMigrate
 import com.spasinnya.data.repository.database.table.*
+import com.spasinnya.data.service.ExposedTransactionRunner
 import com.spasinnya.data.service.JwtServiceImpl
 import com.spasinnya.data.service.security.BcryptPasswordHasher
 import com.spasinnya.domain.model.book.Book
@@ -45,7 +46,11 @@ fun Application.configureDatabases() {
         refresh = refreshRepository,
         tokens = jwtService
     )
-    val register = RegisterUserUseCase(users = userRepository, hasher = passwordHasher)
+    val register = RegisterUserUseCase(
+        users = userRepository,
+        hasher = passwordHasher,
+        tx = ExposedTransactionRunner()
+    )
     val refreshSession =
         RefreshSessionUseCase(users = userRepository, refreshRepo = refreshRepository, tokens = jwtService)
     val login = LoginUserUseCase(

@@ -689,11 +689,35 @@
   <script>
     // Script section to load models into a JS Var
     var defs = {}
+            defs["Book"] = {
+  "required" : [ "author", "createdAt", "id", "title" ],
+  "type" : "object",
+  "properties" : {
+    "id" : {
+      "type" : "integer",
+      "format" : "int64"
+    },
+    "title" : {
+      "maxLength" : 255,
+      "type" : "string"
+    },
+    "author" : {
+      "maxLength" : 255,
+      "type" : "string"
+    },
+    "createdAt" : {
+      "type" : "string",
+      "format" : "date-time"
+    }
+  }
+};
             defs["ErrorResponse"] = {
+  "required" : [ "message" ],
   "type" : "object",
   "properties" : {
     "message" : {
-      "type" : "string"
+      "type" : "string",
+      "example" : "Something went wrong"
     }
   }
 };
@@ -762,6 +786,39 @@
     }
   }
 };
+            defs["UserProfile"] = {
+  "required" : [ "email", "role", "userId" ],
+  "type" : "object",
+  "properties" : {
+    "userId" : {
+      "type" : "integer",
+      "format" : "int64",
+      "example" : 42
+    },
+    "email" : {
+      "type" : "string",
+      "format" : "email",
+      "example" : "alice@example.com"
+    },
+    "role" : {
+      "type" : "string",
+      "example" : "user"
+    },
+    "firstName" : {
+      "type" : "string",
+      "example" : "Alice"
+    },
+    "lastName" : {
+      "type" : "string",
+      "example" : "Johnson"
+    },
+    "avatarUrl" : {
+      "type" : "string",
+      "format" : "uri",
+      "example" : "https://cdn.example.com/avatars/42.png"
+    }
+  }
+};
             defs["VerifyOtpRequest"] = {
   "required" : [ "code", "email" ],
   "type" : "object",
@@ -810,6 +867,14 @@
                     <li data-group="Auth" data-name="verifyOtpPost" class="">
                       <a href="#api-Auth-verifyOtpPost">verifyOtpPost</a>
                     </li>
+                  <li class="nav-header" data-group="Books"><a href="#api-Books">API Methods - Books</a></li>
+                    <li data-group="Books" data-name="booksGet" class="">
+                      <a href="#api-Books-booksGet">booksGet</a>
+                    </li>
+                  <li class="nav-header" data-group="Users"><a href="#api-Users">API Methods - Users</a></li>
+                    <li data-group="Users" data-name="meGet" class="">
+                      <a href="#api-Users-meGet">meGet</a>
+                    </li>
           </ul>
         </nav>
       </div>
@@ -826,7 +891,7 @@
               <div class="app-desc">Version: 1.0.0</div>
             <hr>
             <div>Минимальный Auth API для регистрации, подтверждения OTP (замокано), логина, рефреша и логаута.
-⚠️ OTP сейчас <strong>замокан</strong> и всегда равен <code>&quot;1111&quot;</code>.</div>
+⚠️ OTP сейчас замокан и всегда равен &quot;1111&quot;.</div>
           </div>
         </div>
         <div id="sections">
@@ -867,7 +932,7 @@
                            <pre class="prettyprint"><code class="language-bsh">curl -X POST\
 -H "Accept: application/json"\
 -H "Content-Type: application/json"\
-"http://localhost:8080/login"</code></pre>
+"https://web-books-1.onrender.com/login"</code></pre>
                           </div>
                           <div class="tab-pane" id="examples-Auth-loginPost-0-java">
                             <pre class="prettyprint"><code class="language-java">import io.swagger.client.*;
@@ -1274,7 +1339,7 @@ except ApiException as e:
                            <pre class="prettyprint"><code class="language-bsh">curl -X POST\
 -H "Accept: application/json"\
 -H "Content-Type: application/json"\
-"http://localhost:8080/logout"</code></pre>
+"https://web-books-1.onrender.com/logout"</code></pre>
                           </div>
                           <div class="tab-pane" id="examples-Auth-logoutPost-0-java">
                             <pre class="prettyprint"><code class="language-java">import io.swagger.client.*;
@@ -1521,7 +1586,7 @@ except ApiException as e:
 
 
                           <h2>Responses</h2>
-                            <h3> Status: 200 - Токен отозван </h3>
+                            <h3> Status: 204 - Токен отозван (без тела) </h3>
 
                             <ul class="nav nav-tabs nav-tabs-examples" >
                             </ul>
@@ -1589,7 +1654,7 @@ except ApiException as e:
                         <div class="pull-right"></div>
                         <div class="clearfix"></div>
                         <p></p>
-                        <p class="marked">Принимает **refreshToken** в теле, возвращает новую пару токенов.  
+                        <p class="marked">Принимает refreshToken в теле, возвращает новую пару токенов.
 Старый refresh обычно помечается неактивным (ротация).
 </p>
                         <p></p>
@@ -1617,7 +1682,7 @@ except ApiException as e:
                            <pre class="prettyprint"><code class="language-bsh">curl -X POST\
 -H "Accept: application/json"\
 -H "Content-Type: application/json"\
-"http://localhost:8080/refresh"</code></pre>
+"https://web-books-1.onrender.com/refresh"</code></pre>
                           </div>
                           <div class="tab-pane" id="examples-Auth-refreshPost-0-java">
                             <pre class="prettyprint"><code class="language-java">import io.swagger.client.*;
@@ -1981,8 +2046,8 @@ except ApiException as e:
                         <div class="pull-right"></div>
                         <div class="clearfix"></div>
                         <p></p>
-                        <p class="marked">Создаёт пользователя со статусом &#x60;pending&#x60;.  
-OTP-код для подтверждения **всегда &quot;1111&quot;** (пишется в лог).
+                        <p class="marked">Создаёт пользователя со статусом &#x60;pending&#x60;.
+OTP-код для подтверждения всегда &quot;1111&quot; (пишется в лог).
 </p>
                         <p></p>
                         <br />
@@ -2009,7 +2074,7 @@ OTP-код для подтверждения **всегда &quot;1111&quot;** (
                            <pre class="prettyprint"><code class="language-bsh">curl -X POST\
 -H "Accept: application/json"\
 -H "Content-Type: application/json"\
-"http://localhost:8080/register"</code></pre>
+"https://web-books-1.onrender.com/register"</code></pre>
                           </div>
                           <div class="tab-pane" id="examples-Auth-registerPost-0-java">
                             <pre class="prettyprint"><code class="language-java">import io.swagger.client.*;
@@ -2357,7 +2422,7 @@ except ApiException as e:
                            <pre class="prettyprint"><code class="language-bsh">curl -X POST\
 -H "Accept: application/json"\
 -H "Content-Type: application/json"\
-"http://localhost:8080/verify-otp"</code></pre>
+"https://web-books-1.onrender.com/verify-otp"</code></pre>
                           </div>
                           <div class="tab-pane" id="examples-Auth-verifyOtpPost-0-java">
                             <pre class="prettyprint"><code class="language-java">import io.swagger.client.*;
@@ -2675,6 +2740,730 @@ except ApiException as e:
                                     </script>
                                   </div>
                                   <input id='responses-verifyOtpPost-400-schema-data' type='hidden' value=''></input>
+                                </div>
+                            </div>
+
+                        </article>
+                      </div>
+                      <hr>
+                  </section>
+                <section id="api-Books">
+                  <h1>Books</h1>
+                    <div id="api-Books-booksGet">
+                      <article id="api-Books-booksGet-0" data-group="User" data-name="booksGet" data-version="0">
+                        <div class="pull-left">
+                          <h1>booksGet</h1>
+                          <p>Get list of books</p>
+                        </div>
+                        <div class="pull-right"></div>
+                        <div class="clearfix"></div>
+                        <p></p>
+                        <p class="marked">Returns all books. Requires valid JWT access token.</p>
+                        <p></p>
+                        <br />
+                        <pre class="prettyprint language-html prettyprinted" data-type="get"><code><span class="pln">/books</span></code></pre>
+                        <p>
+                          <h3>Usage and SDK Samples</h3>
+                        </p>
+                        <ul class="nav nav-tabs nav-tabs-examples">
+                          <li class="active"><a href="#examples-Books-booksGet-0-curl">Curl</a></li>
+                          <li class=""><a href="#examples-Books-booksGet-0-java">Java</a></li>
+                          <li class=""><a href="#examples-Books-booksGet-0-android">Android</a></li>
+                          <!--<li class=""><a href="#examples-Books-booksGet-0-groovy">Groovy</a></li>-->
+                          <li class=""><a href="#examples-Books-booksGet-0-objc">Obj-C</a></li>
+                          <li class=""><a href="#examples-Books-booksGet-0-javascript">JavaScript</a></li>
+                          <!--<li class=""><a href="#examples-Books-booksGet-0-angular">Angular</a></li>-->
+                          <li class=""><a href="#examples-Books-booksGet-0-csharp">C#</a></li>
+                          <li class=""><a href="#examples-Books-booksGet-0-php">PHP</a></li>
+                          <li class=""><a href="#examples-Books-booksGet-0-perl">Perl</a></li>
+                          <li class=""><a href="#examples-Books-booksGet-0-python">Python</a></li>
+                        </ul>
+
+                        <div class="tab-content">
+                          <div class="tab-pane active" id="examples-Books-booksGet-0-curl">
+                           <pre class="prettyprint"><code class="language-bsh">curl -X GET\
+ -H "Authorization: Bearer [[accessToken]]"\
+-H "Accept: application/json"\
+"https://web-books-1.onrender.com/books"</code></pre>
+                          </div>
+                          <div class="tab-pane" id="examples-Books-booksGet-0-java">
+                            <pre class="prettyprint"><code class="language-java">import io.swagger.client.*;
+import io.swagger.client.auth.*;
+import io.swagger.client.model.*;
+import io.swagger.client.api.BooksApi;
+
+import java.io.File;
+import java.util.*;
+
+public class BooksApiExample {
+
+    public static void main(String[] args) {
+        ApiClient defaultClient = Configuration.getDefaultApiClient();
+
+
+        BooksApi apiInstance = new BooksApi();
+        try {
+            array[Book] result = apiInstance.booksGet();
+            System.out.println(result);
+        } catch (ApiException e) {
+            System.err.println("Exception when calling BooksApi#booksGet");
+            e.printStackTrace();
+        }
+    }
+}</code></pre>
+                          </div>
+
+                          <div class="tab-pane" id="examples-Books-booksGet-0-android">
+                            <pre class="prettyprint"><code class="language-java">import io.swagger.client.api.BooksApi;
+
+public class BooksApiExample {
+
+    public static void main(String[] args) {
+        BooksApi apiInstance = new BooksApi();
+        try {
+            array[Book] result = apiInstance.booksGet();
+            System.out.println(result);
+        } catch (ApiException e) {
+            System.err.println("Exception when calling BooksApi#booksGet");
+            e.printStackTrace();
+        }
+    }
+}</code></pre>
+                          </div>
+  <!--
+  <div class="tab-pane" id="examples-Books-booksGet-0-groovy">
+  <pre class="prettyprint language-json prettyprinted" data-type="json"><code>Coming Soon!</code></pre>
+  </div> -->
+                            <div class="tab-pane" id="examples-Books-booksGet-0-objc">
+                              <pre class="prettyprint"><code class="language-cpp">Configuration *apiConfig = [Configuration sharedConfig];
+
+BooksApi *apiInstance = [[BooksApi alloc] init];
+
+// Get list of books
+[apiInstance booksGetWithCompletionHandler: 
+              ^(array[Book] output, NSError* error) {
+                            if (output) {
+                                NSLog(@"%@", output);
+                            }
+                            if (error) {
+                                NSLog(@"Error: %@", error);
+                            }
+                        }];
+</code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-Books-booksGet-0-javascript">
+                              <pre class="prettyprint"><code class="language-js">var AuthApi = require('auth_api');
+var defaultClient = AuthApi.ApiClient.instance;
+
+
+var api = new AuthApi.BooksApi()
+var callback = function(error, data, response) {
+  if (error) {
+    console.error(error);
+  } else {
+    console.log('API called successfully. Returned data: ' + data);
+  }
+};
+api.booksGet(callback);
+</code></pre>
+                            </div>
+
+                            <!--<div class="tab-pane" id="examples-Books-booksGet-0-angular">
+              <pre class="prettyprint language-json prettyprinted" data-type="json"><code>Coming Soon!</code></pre>
+            </div>-->
+                            <div class="tab-pane" id="examples-Books-booksGet-0-csharp">
+                              <pre class="prettyprint"><code class="language-cs">using System;
+using System.Diagnostics;
+using IO.Swagger.Api;
+using IO.Swagger.Client;
+using IO.Swagger.Model;
+
+namespace Example
+{
+    public class booksGetExample
+    {
+        public void main()
+        {
+
+
+            var apiInstance = new BooksApi();
+
+            try
+            {
+                // Get list of books
+                array[Book] result = apiInstance.booksGet();
+                Debug.WriteLine(result);
+            }
+            catch (Exception e)
+            {
+                Debug.Print("Exception when calling BooksApi.booksGet: " + e.Message );
+            }
+        }
+    }
+}
+</code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-Books-booksGet-0-php">
+                              <pre class="prettyprint"><code class="language-php"><&#63;php
+require_once(__DIR__ . '/vendor/autoload.php');
+
+
+$api_instance = new Swagger\Client\ApiBooksApi();
+
+try {
+    $result = $api_instance->booksGet();
+    print_r($result);
+} catch (Exception $e) {
+    echo 'Exception when calling BooksApi->booksGet: ', $e->getMessage(), PHP_EOL;
+}
+?></code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-Books-booksGet-0-perl">
+                              <pre class="prettyprint"><code class="language-perl">use Data::Dumper;
+use WWW::SwaggerClient::Configuration;
+use WWW::SwaggerClient::BooksApi;
+
+
+my $api_instance = WWW::SwaggerClient::BooksApi->new();
+
+eval { 
+    my $result = $api_instance->booksGet();
+    print Dumper($result);
+};
+if ($@) {
+    warn "Exception when calling BooksApi->booksGet: $@\n";
+}</code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-Books-booksGet-0-python">
+                              <pre class="prettyprint"><code class="language-python">from __future__ import print_statement
+import time
+import swagger_client
+from swagger_client.rest import ApiException
+from pprint import pprint
+
+
+# create an instance of the API class
+api_instance = swagger_client.BooksApi()
+
+try: 
+    # Get list of books
+    api_response = api_instance.books_get()
+    pprint(api_response)
+except ApiException as e:
+    print("Exception when calling BooksApi->booksGet: %s\n" % e)</code></pre>
+                            </div>
+                          </div>
+
+                          <h2>Parameters</h2>
+
+
+
+
+
+
+                          <h2>Responses</h2>
+                            <h3> Status: 200 - List of books </h3>
+
+                            <ul class="nav nav-tabs nav-tabs-examples" >
+                                <li class="active">
+                                  <a data-toggle="tab" href="#responses-booksGet-200-schema">Schema</a>
+                                </li>
+
+                            </ul>
+
+                            <div class="tab-content" style='margin-bottom: 10px;'>
+                                <div class="tab-pane active" id="responses-booksGet-200-schema">
+                                  <div id='responses-booksGet-200-schema-200' style="padding: 30px; border-left: 1px solid #eee; border-right: 1px solid #eee; border-bottom: 1px solid #eee;">
+                                    <script>
+                                      $(document).ready(function() {
+                                        var schemaWrapper = {
+  "description" : "List of books",
+  "content" : {
+    "application/json" : {
+      "schema" : {
+        "type" : "array",
+        "x-content-type" : "application/json",
+        "items" : {
+          "$ref" : "#/components/schemas/Book"
+        }
+      },
+      "examples" : {
+        "sample" : {
+          "value" : [ {
+            "id" : 1,
+            "title" : "Clean Architecture",
+            "author" : "Robert C. Martin",
+            "createdAt" : "2025-09-01T12:30:00Z"
+          }, {
+            "id" : 2,
+            "title" : "Kotlin in Action",
+            "author" : "Dmitry Jemerov",
+            "createdAt" : "2025-09-10T09:00:00Z"
+          } ]
+        }
+      }
+    }
+  }
+};
+                                        var schema = schemaWrapper.content["application/json"].schema;
+                                        if (schema.$ref != null) {
+                                          schema = defsParser.$refs.get(schema.$ref);
+                                        } else {
+                                          schemaWrapper.components = {};
+                                          schemaWrapper.components.schemas = Object.assign({}, defs);
+                                          $RefParser.dereference(schemaWrapper).catch(function(err) {
+                                            console.log(err);
+                                          });
+                                        }
+
+                                        //console.log(JSON.stringify(schema));
+                                        var view = new JSONSchemaView(schema, 3);
+                                        $('#responses-booksGet-200-schema-data').val(stringify(schema));
+                                        var result = $('#responses-booksGet-200-schema-200');
+                                        result.empty();
+                                        result.append(view.render());
+                                      });
+                                    </script>
+                                  </div>
+                                  <input id='responses-booksGet-200-schema-data' type='hidden' value=''></input>
+                                </div>
+                            </div>
+
+                            <h3> Status: 401 - Missing or invalid JWT token </h3>
+
+                            <ul class="nav nav-tabs nav-tabs-examples" >
+                                <li class="active">
+                                  <a data-toggle="tab" href="#responses-booksGet-401-schema">Schema</a>
+                                </li>
+
+                            </ul>
+
+                            <div class="tab-content" style='margin-bottom: 10px;'>
+                                <div class="tab-pane active" id="responses-booksGet-401-schema">
+                                  <div id='responses-booksGet-401-schema-401' style="padding: 30px; border-left: 1px solid #eee; border-right: 1px solid #eee; border-bottom: 1px solid #eee;">
+                                    <script>
+                                      $(document).ready(function() {
+                                        var schemaWrapper = {
+  "description" : "Missing or invalid JWT token",
+  "content" : {
+    "application/json" : {
+      "schema" : {
+        "$ref" : "#/components/schemas/ErrorResponse"
+      },
+      "examples" : {
+        "unauthorized" : {
+          "value" : {
+            "message" : "Unauthorized"
+          }
+        }
+      }
+    }
+  }
+};
+                                        var schema = schemaWrapper.content["application/json"].schema;
+                                        if (schema.$ref != null) {
+                                          schema = defsParser.$refs.get(schema.$ref);
+                                        } else {
+                                          schemaWrapper.components = {};
+                                          schemaWrapper.components.schemas = Object.assign({}, defs);
+                                          $RefParser.dereference(schemaWrapper).catch(function(err) {
+                                            console.log(err);
+                                          });
+                                        }
+
+                                        //console.log(JSON.stringify(schema));
+                                        var view = new JSONSchemaView(schema, 3);
+                                        $('#responses-booksGet-401-schema-data').val(stringify(schema));
+                                        var result = $('#responses-booksGet-401-schema-401');
+                                        result.empty();
+                                        result.append(view.render());
+                                      });
+                                    </script>
+                                  </div>
+                                  <input id='responses-booksGet-401-schema-data' type='hidden' value=''></input>
+                                </div>
+                            </div>
+
+                        </article>
+                      </div>
+                      <hr>
+                  </section>
+                <section id="api-Users">
+                  <h1>Users</h1>
+                    <div id="api-Users-meGet">
+                      <article id="api-Users-meGet-0" data-group="User" data-name="meGet" data-version="0">
+                        <div class="pull-left">
+                          <h1>meGet</h1>
+                          <p>Get current authenticated user</p>
+                        </div>
+                        <div class="pull-right"></div>
+                        <div class="clearfix"></div>
+                        <p></p>
+                        <p class="marked">Returns information about the current user. Requires a valid JWT access token.</p>
+                        <p></p>
+                        <br />
+                        <pre class="prettyprint language-html prettyprinted" data-type="get"><code><span class="pln">/me</span></code></pre>
+                        <p>
+                          <h3>Usage and SDK Samples</h3>
+                        </p>
+                        <ul class="nav nav-tabs nav-tabs-examples">
+                          <li class="active"><a href="#examples-Users-meGet-0-curl">Curl</a></li>
+                          <li class=""><a href="#examples-Users-meGet-0-java">Java</a></li>
+                          <li class=""><a href="#examples-Users-meGet-0-android">Android</a></li>
+                          <!--<li class=""><a href="#examples-Users-meGet-0-groovy">Groovy</a></li>-->
+                          <li class=""><a href="#examples-Users-meGet-0-objc">Obj-C</a></li>
+                          <li class=""><a href="#examples-Users-meGet-0-javascript">JavaScript</a></li>
+                          <!--<li class=""><a href="#examples-Users-meGet-0-angular">Angular</a></li>-->
+                          <li class=""><a href="#examples-Users-meGet-0-csharp">C#</a></li>
+                          <li class=""><a href="#examples-Users-meGet-0-php">PHP</a></li>
+                          <li class=""><a href="#examples-Users-meGet-0-perl">Perl</a></li>
+                          <li class=""><a href="#examples-Users-meGet-0-python">Python</a></li>
+                        </ul>
+
+                        <div class="tab-content">
+                          <div class="tab-pane active" id="examples-Users-meGet-0-curl">
+                           <pre class="prettyprint"><code class="language-bsh">curl -X GET\
+ -H "Authorization: Bearer [[accessToken]]"\
+-H "Accept: application/json"\
+"https://web-books-1.onrender.com/me"</code></pre>
+                          </div>
+                          <div class="tab-pane" id="examples-Users-meGet-0-java">
+                            <pre class="prettyprint"><code class="language-java">import io.swagger.client.*;
+import io.swagger.client.auth.*;
+import io.swagger.client.model.*;
+import io.swagger.client.api.UsersApi;
+
+import java.io.File;
+import java.util.*;
+
+public class UsersApiExample {
+
+    public static void main(String[] args) {
+        ApiClient defaultClient = Configuration.getDefaultApiClient();
+
+
+        UsersApi apiInstance = new UsersApi();
+        try {
+            UserProfile result = apiInstance.meGet();
+            System.out.println(result);
+        } catch (ApiException e) {
+            System.err.println("Exception when calling UsersApi#meGet");
+            e.printStackTrace();
+        }
+    }
+}</code></pre>
+                          </div>
+
+                          <div class="tab-pane" id="examples-Users-meGet-0-android">
+                            <pre class="prettyprint"><code class="language-java">import io.swagger.client.api.UsersApi;
+
+public class UsersApiExample {
+
+    public static void main(String[] args) {
+        UsersApi apiInstance = new UsersApi();
+        try {
+            UserProfile result = apiInstance.meGet();
+            System.out.println(result);
+        } catch (ApiException e) {
+            System.err.println("Exception when calling UsersApi#meGet");
+            e.printStackTrace();
+        }
+    }
+}</code></pre>
+                          </div>
+  <!--
+  <div class="tab-pane" id="examples-Users-meGet-0-groovy">
+  <pre class="prettyprint language-json prettyprinted" data-type="json"><code>Coming Soon!</code></pre>
+  </div> -->
+                            <div class="tab-pane" id="examples-Users-meGet-0-objc">
+                              <pre class="prettyprint"><code class="language-cpp">Configuration *apiConfig = [Configuration sharedConfig];
+
+UsersApi *apiInstance = [[UsersApi alloc] init];
+
+// Get current authenticated user
+[apiInstance meGetWithCompletionHandler: 
+              ^(UserProfile output, NSError* error) {
+                            if (output) {
+                                NSLog(@"%@", output);
+                            }
+                            if (error) {
+                                NSLog(@"Error: %@", error);
+                            }
+                        }];
+</code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-Users-meGet-0-javascript">
+                              <pre class="prettyprint"><code class="language-js">var AuthApi = require('auth_api');
+var defaultClient = AuthApi.ApiClient.instance;
+
+
+var api = new AuthApi.UsersApi()
+var callback = function(error, data, response) {
+  if (error) {
+    console.error(error);
+  } else {
+    console.log('API called successfully. Returned data: ' + data);
+  }
+};
+api.meGet(callback);
+</code></pre>
+                            </div>
+
+                            <!--<div class="tab-pane" id="examples-Users-meGet-0-angular">
+              <pre class="prettyprint language-json prettyprinted" data-type="json"><code>Coming Soon!</code></pre>
+            </div>-->
+                            <div class="tab-pane" id="examples-Users-meGet-0-csharp">
+                              <pre class="prettyprint"><code class="language-cs">using System;
+using System.Diagnostics;
+using IO.Swagger.Api;
+using IO.Swagger.Client;
+using IO.Swagger.Model;
+
+namespace Example
+{
+    public class meGetExample
+    {
+        public void main()
+        {
+
+
+            var apiInstance = new UsersApi();
+
+            try
+            {
+                // Get current authenticated user
+                UserProfile result = apiInstance.meGet();
+                Debug.WriteLine(result);
+            }
+            catch (Exception e)
+            {
+                Debug.Print("Exception when calling UsersApi.meGet: " + e.Message );
+            }
+        }
+    }
+}
+</code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-Users-meGet-0-php">
+                              <pre class="prettyprint"><code class="language-php"><&#63;php
+require_once(__DIR__ . '/vendor/autoload.php');
+
+
+$api_instance = new Swagger\Client\ApiUsersApi();
+
+try {
+    $result = $api_instance->meGet();
+    print_r($result);
+} catch (Exception $e) {
+    echo 'Exception when calling UsersApi->meGet: ', $e->getMessage(), PHP_EOL;
+}
+?></code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-Users-meGet-0-perl">
+                              <pre class="prettyprint"><code class="language-perl">use Data::Dumper;
+use WWW::SwaggerClient::Configuration;
+use WWW::SwaggerClient::UsersApi;
+
+
+my $api_instance = WWW::SwaggerClient::UsersApi->new();
+
+eval { 
+    my $result = $api_instance->meGet();
+    print Dumper($result);
+};
+if ($@) {
+    warn "Exception when calling UsersApi->meGet: $@\n";
+}</code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-Users-meGet-0-python">
+                              <pre class="prettyprint"><code class="language-python">from __future__ import print_statement
+import time
+import swagger_client
+from swagger_client.rest import ApiException
+from pprint import pprint
+
+
+# create an instance of the API class
+api_instance = swagger_client.UsersApi()
+
+try: 
+    # Get current authenticated user
+    api_response = api_instance.me_get()
+    pprint(api_response)
+except ApiException as e:
+    print("Exception when calling UsersApi->meGet: %s\n" % e)</code></pre>
+                            </div>
+                          </div>
+
+                          <h2>Parameters</h2>
+
+
+
+
+
+
+                          <h2>Responses</h2>
+                            <h3> Status: 200 - Current user profile </h3>
+
+                            <ul class="nav nav-tabs nav-tabs-examples" >
+                                <li class="active">
+                                  <a data-toggle="tab" href="#responses-meGet-200-schema">Schema</a>
+                                </li>
+
+                            </ul>
+
+                            <div class="tab-content" style='margin-bottom: 10px;'>
+                                <div class="tab-pane active" id="responses-meGet-200-schema">
+                                  <div id='responses-meGet-200-schema-200' style="padding: 30px; border-left: 1px solid #eee; border-right: 1px solid #eee; border-bottom: 1px solid #eee;">
+                                    <script>
+                                      $(document).ready(function() {
+                                        var schemaWrapper = {
+  "description" : "Current user profile",
+  "content" : {
+    "application/json" : {
+      "schema" : {
+        "$ref" : "#/components/schemas/UserProfile"
+      },
+      "examples" : {
+        "sample" : {
+          "value" : {
+            "userId" : 42,
+            "email" : "alice@example.com",
+            "role" : "user",
+            "firstName" : "Alice",
+            "lastName" : "Johnson",
+            "avatarUrl" : "https://cdn.example.com/avatars/42.png"
+          }
+        }
+      }
+    }
+  }
+};
+                                        var schema = schemaWrapper.content["application/json"].schema;
+                                        if (schema.$ref != null) {
+                                          schema = defsParser.$refs.get(schema.$ref);
+                                        } else {
+                                          schemaWrapper.components = {};
+                                          schemaWrapper.components.schemas = Object.assign({}, defs);
+                                          $RefParser.dereference(schemaWrapper).catch(function(err) {
+                                            console.log(err);
+                                          });
+                                        }
+
+                                        //console.log(JSON.stringify(schema));
+                                        var view = new JSONSchemaView(schema, 3);
+                                        $('#responses-meGet-200-schema-data').val(stringify(schema));
+                                        var result = $('#responses-meGet-200-schema-200');
+                                        result.empty();
+                                        result.append(view.render());
+                                      });
+                                    </script>
+                                  </div>
+                                  <input id='responses-meGet-200-schema-data' type='hidden' value=''></input>
+                                </div>
+                            </div>
+
+                            <h3> Status: 401 - Unauthorized (missing or invalid token) </h3>
+
+                            <ul class="nav nav-tabs nav-tabs-examples" >
+                                <li class="active">
+                                  <a data-toggle="tab" href="#responses-meGet-401-schema">Schema</a>
+                                </li>
+
+                            </ul>
+
+                            <div class="tab-content" style='margin-bottom: 10px;'>
+                                <div class="tab-pane active" id="responses-meGet-401-schema">
+                                  <div id='responses-meGet-401-schema-401' style="padding: 30px; border-left: 1px solid #eee; border-right: 1px solid #eee; border-bottom: 1px solid #eee;">
+                                    <script>
+                                      $(document).ready(function() {
+                                        var schemaWrapper = {
+  "description" : "Unauthorized (missing or invalid token)",
+  "content" : {
+    "application/json" : {
+      "schema" : {
+        "$ref" : "#/components/schemas/ErrorResponse"
+      }
+    }
+  }
+};
+                                        var schema = schemaWrapper.content["application/json"].schema;
+                                        if (schema.$ref != null) {
+                                          schema = defsParser.$refs.get(schema.$ref);
+                                        } else {
+                                          schemaWrapper.components = {};
+                                          schemaWrapper.components.schemas = Object.assign({}, defs);
+                                          $RefParser.dereference(schemaWrapper).catch(function(err) {
+                                            console.log(err);
+                                          });
+                                        }
+
+                                        //console.log(JSON.stringify(schema));
+                                        var view = new JSONSchemaView(schema, 3);
+                                        $('#responses-meGet-401-schema-data').val(stringify(schema));
+                                        var result = $('#responses-meGet-401-schema-401');
+                                        result.empty();
+                                        result.append(view.render());
+                                      });
+                                    </script>
+                                  </div>
+                                  <input id='responses-meGet-401-schema-data' type='hidden' value=''></input>
+                                </div>
+                            </div>
+
+                            <h3> Status: 404 - User not found </h3>
+
+                            <ul class="nav nav-tabs nav-tabs-examples" >
+                                <li class="active">
+                                  <a data-toggle="tab" href="#responses-meGet-404-schema">Schema</a>
+                                </li>
+
+                            </ul>
+
+                            <div class="tab-content" style='margin-bottom: 10px;'>
+                                <div class="tab-pane active" id="responses-meGet-404-schema">
+                                  <div id='responses-meGet-404-schema-404' style="padding: 30px; border-left: 1px solid #eee; border-right: 1px solid #eee; border-bottom: 1px solid #eee;">
+                                    <script>
+                                      $(document).ready(function() {
+                                        var schemaWrapper = {
+  "description" : "User not found",
+  "content" : {
+    "application/json" : {
+      "schema" : {
+        "$ref" : "#/components/schemas/ErrorResponse"
+      }
+    }
+  }
+};
+                                        var schema = schemaWrapper.content["application/json"].schema;
+                                        if (schema.$ref != null) {
+                                          schema = defsParser.$refs.get(schema.$ref);
+                                        } else {
+                                          schemaWrapper.components = {};
+                                          schemaWrapper.components.schemas = Object.assign({}, defs);
+                                          $RefParser.dereference(schemaWrapper).catch(function(err) {
+                                            console.log(err);
+                                          });
+                                        }
+
+                                        //console.log(JSON.stringify(schema));
+                                        var view = new JSONSchemaView(schema, 3);
+                                        $('#responses-meGet-404-schema-data').val(stringify(schema));
+                                        var result = $('#responses-meGet-404-schema-404');
+                                        result.empty();
+                                        result.append(view.render());
+                                      });
+                                    </script>
+                                  </div>
+                                  <input id='responses-meGet-404-schema-data' type='hidden' value=''></input>
                                 </div>
                             </div>
 
