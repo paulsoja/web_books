@@ -17,6 +17,7 @@ import com.spasinnya.domain.repository.UserRepository
 import com.spasinnya.domain.usecase.*
 import com.spasinnya.presentation.routes.authRoutes
 import com.spasinnya.presentation.routes.bookRoutes
+import com.spasinnya.presentation.routes.userRoutes
 import io.ktor.server.application.*
 import io.ktor.server.auth.authenticate
 import io.ktor.server.plugins.openapi.*
@@ -55,6 +56,8 @@ fun Application.configureDatabases() {
     )
     val logout = LogoutUseCase(refreshRepo = refreshRepository, tokens = jwtService)
 
+    val profileUseCase = GetUserProfileUseCase(userRepository = userRepository)
+
     routing {
         authRoutes(
             registerUser = register,
@@ -64,6 +67,9 @@ fun Application.configureDatabases() {
             logout = logout
         )
         authenticate("auth-jwt") {
+            userRoutes(
+                getUserProfileUseCase = profileUseCase
+            )
             bookRoutes(
                 bookRepository = bookRepository
             )

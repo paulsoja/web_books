@@ -3,13 +3,16 @@
 package com.spasinnya.data.repository
 
 import com.spasinnya.data.extension.runDb
+import com.spasinnya.data.repository.database.table.UserProfiles
 import com.spasinnya.data.repository.database.table.Users
 import com.spasinnya.domain.model.User
+import com.spasinnya.domain.model.UserProfile
 import com.spasinnya.domain.repository.UserRepository
 import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.select
+import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.update
 import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
@@ -35,7 +38,7 @@ class UserDataRepository(
             .where { Users.email eq email }
             .limit(1)
             .firstOrNull()
-            ?.toDomain()
+            ?.toUser()
     }
 
     override suspend fun findById(id: Long): Result<User?> = database.runDb {
@@ -44,7 +47,7 @@ class UserDataRepository(
             .where { Users.id eq id }
             .limit(1)
             .firstOrNull()
-            ?.toDomain()
+            ?.toUser()
     }
 
     override suspend fun setConfirmedAt(userId: Long): Result<Unit> = database.runDb {
@@ -70,7 +73,15 @@ class UserDataRepository(
         Unit
     }
 
-    private fun ResultRow.toDomain() = User(
+    override suspend fun findUserProfile(userId: Long): Result<UserProfile?> = database.runDb {
+        (Users leftJoin UserProfiles)
+            .selectAll()
+            .where { Users.id eq userId }
+            .singleOrNull()
+            ?.toUserProfile()
+    }
+
+    private fun ResultRow.toUser() = User(
         id = this[Users.id],
         email = this[Users.email],
         passwordHash = this[Users.passwordHash],
@@ -80,6 +91,16 @@ class UserDataRepository(
         role = this[Users.role],
         createdAt = this[Users.createdAt],
         updatedAt = this[Users.updatedAt]
+    )
+
+    private fun ResultRow.toUserProfile() = UserProfile(
+        userId = this[Users.id],
+        email = this[Users.email],
+        role = this[Users.role],
+        firstName = this[UserProfiles.firstName].orEmpty(),
+        lastName = this[UserProfiles.lastName].orEmpty(),
+        avatarUrl = this[UserProfiles.avatarUrl].orEmpty()
+
     )
 }
 

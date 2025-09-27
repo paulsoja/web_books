@@ -17,7 +17,7 @@ tags:
 paths:
   /register:
     post:
-      tags: [Auth]
+      tags: [ Auth ]
       summary: Регистрация
       description: |
         Создаёт пользователя со статусом `pending`.  
@@ -67,7 +67,7 @@ paths:
 
   /login:
     post:
-      tags: [Auth]
+      tags: [ Auth ]
       summary: Логин по email и паролю
       description: Возвращает пару токенов (access/refresh).
       requestBody:
@@ -102,7 +102,7 @@ paths:
 
   /refresh:
     post:
-      tags: [Auth]
+      tags: [ Auth ]
       summary: Обновление access/refresh токенов
       description: |
         Принимает **refreshToken** в теле, возвращает новую пару токенов.  
@@ -132,7 +132,7 @@ paths:
 
   /logout:
     post:
-      tags: [Auth]
+      tags: [ Auth ]
       summary: Логаут (ревокация refresh-токена)
       description: Аннулирует переданный refresh-токен.
       requestBody:
@@ -154,6 +154,74 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
+  /books:
+    get:
+      tags: [ Books ]
+      summary: Get list of books
+      description: Returns all books. Requires valid JWT access token.
+      security:
+        - bearerAuth: [ ]   # требуем токен именно для этой ручки
+      responses:
+        '200':
+          description: List of books
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Book'
+              examples:
+                sample:
+                  value:
+                    - id: 1
+                      title: "Clean Architecture"
+                      author: "Robert C. Martin"
+                      createdAt: "2025-09-01T12:30:00Z"
+                    - id: 2
+                      title: "Kotlin in Action"
+                      author: "Dmitry Jemerov"
+                      createdAt: "2025-09-10T09:00:00Z"
+        '401':
+          description: Missing or invalid JWT token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                unauthorized:
+                  value:
+                    message: "Unauthorized"
+
+
+  /me:
+    get:
+      tags:
+        - Users
+      summary: Get current authenticated user
+      description: Returns information about the current user. Requires a valid JWT access token.
+      security:
+        - bearerAuth: [ ]
+      responses:
+        '200':
+          description: Current user profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+              examples:
+                sample:
+                  value:
+                    userId: 42
+                    email: "alice@example.com"
+                    role: "user"
+                    firstName: "Alice"
+                    lastName: "Johnson"
+                    avatarUrl: "https://cdn.example.com/avatars/42.png"
+        '401':
+          description: Unauthorized (missing or invalid token)
+        '404':
+          description: User not found
+
 components:
   securitySchemes:
     bearerAuth:
@@ -164,7 +232,7 @@ components:
   schemas:
     RegisterRequest:
       type: object
-      required: [email, password]
+      required: [ email, password ]
       properties:
         email:
           type: string
@@ -177,7 +245,7 @@ components:
 
     VerifyOtpRequest:
       type: object
-      required: [email, code]
+      required: [ email, code ]
       properties:
         email:
           type: string
@@ -190,7 +258,7 @@ components:
 
     LoginRequest:
       type: object
-      required: [email, password]
+      required: [ email, password ]
       properties:
         email:
           type: string
@@ -202,7 +270,7 @@ components:
 
     RefreshRequest:
       type: object
-      required: [refreshToken]
+      required: [ refreshToken ]
       properties:
         refreshToken:
           type: string
@@ -210,7 +278,7 @@ components:
 
     TokenResponse:
       type: object
-      required: [accessToken, accessExpiresAt, refreshToken, refreshExpiresAt]
+      required: [ accessToken, accessExpiresAt, refreshToken, refreshExpiresAt ]
       properties:
         accessToken:
           type: string
@@ -226,6 +294,57 @@ components:
           type: string
           format: date-time
           description: ISO-8601 время истечения refresh
+
+    Book:
+      type: object
+      required: [ id, title, author, createdAt ]
+      properties:
+        id:
+          type: integer
+          format: int64
+        title:
+          type: string
+          maxLength: 255
+        author:
+          type: string
+          maxLength: 255
+        createdAt:
+          type: string
+          format: date-time
+      Error:
+        type: object
+        properties:
+          message:
+            type: string
+
+    UserProfile:
+      type: object
+      required:
+        - userId
+        - email
+        - role
+      properties:
+        userId:
+          type: integer
+          format: int64
+          example: 42
+        email:
+          type: string
+          format: email
+          example: alice@example.com
+        role:
+          type: string
+          example: user
+        firstName:
+          type: string
+          example: Alice
+        lastName:
+          type: string
+          example: Johnson
+        avatarUrl:
+          type: string
+          format: uri
+          example: https://cdn.example.com/avatars/42.png
 
     ErrorResponse:
       type: object

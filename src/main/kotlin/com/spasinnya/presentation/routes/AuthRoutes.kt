@@ -25,24 +25,28 @@ fun Route.authRoutes(
     post("/register") {
         val req = call.receive<RegisterRequest>()
         val result = registerUser(req.email, req.password)
-        result.onSuccess { call.respond(HttpStatusCode.Created) }
-            .onFailure { call.respond(HttpStatusCode.BadRequest, it.message ?: "Error") }
+        result.fold(
+            onSuccess = { call.respond(HttpStatusCode.Created) },
+            onFailure = { call.respond(HttpStatusCode.BadRequest, it.message ?: "Error") }
+        )
     }
 
     post("/verify-otp") {
         val req = call.receive<VerifyOtpRequest>()
         val result = verifyOtp(req.email, req.code)
-        result.onSuccess {
-            call.respond(
-                TokenResponse(
-                    accessToken = it.accessToken,
-                    accessExpiresAt = it.accessExpiresAt.toString(),
-                    refreshToken = it.refreshToken,
-                    refreshExpiresAt = it.refreshExpiresAt.toString()
+        result.fold(
+            onSuccess = {
+                call.respond(
+                    TokenResponse(
+                        accessToken = it.accessToken,
+                        accessExpiresAt = it.accessExpiresAt.toString(),
+                        refreshToken = it.refreshToken,
+                        refreshExpiresAt = it.refreshExpiresAt.toString()
+                    )
                 )
-            )
-        }
-            .onFailure { call.respond(HttpStatusCode.BadRequest, it.message ?: "Error") }
+            },
+            onFailure = { call.respond(HttpStatusCode.BadRequest, it.message ?: "Error") }
+        )
     }
 
     post("/login") {
@@ -51,39 +55,43 @@ fun Route.authRoutes(
         val ip = call.request.origin.remoteHost
 
         val result = loginUser(req.email, req.password, ua, ip)
-        result.onSuccess {
-            call.respond(
-                TokenResponse(
-                    accessToken = it.accessToken,
-                    accessExpiresAt = it.accessExpiresAt.toString(),
-                    refreshToken = it.refreshToken,
-                    refreshExpiresAt = it.refreshExpiresAt.toString()
+        result.fold(
+            onSuccess = {
+                call.respond(
+                    TokenResponse(
+                        accessToken = it.accessToken,
+                        accessExpiresAt = it.accessExpiresAt.toString(),
+                        refreshToken = it.refreshToken,
+                        refreshExpiresAt = it.refreshExpiresAt.toString()
+                    )
                 )
-            )
-        }.onFailure {
-            call.respond(HttpStatusCode.Unauthorized, it.message ?: "Unauthorized")
-        }
+            },
+            onFailure = { call.respond(HttpStatusCode.Unauthorized, it.message ?: "Unauthorized") }
+        )
     }
 
     post("/refresh") {
         val req = call.receive<RefreshRequest>()
         val result = refreshSession(req.refreshToken)
-        result.onSuccess {
-            call.respond(TokenResponse(
-                accessToken = it.accessToken,
-                accessExpiresAt = it.accessExpiresAt.toString(),
-                refreshToken = it.refreshToken,
-                refreshExpiresAt = it.refreshExpiresAt.toString()
-            ))
-        }.onFailure {
-            call.respond(HttpStatusCode.Unauthorized, it.message ?: "Unauthorized")
-        }
+        result.fold(
+            onSuccess = {
+                call.respond(TokenResponse(
+                    accessToken = it.accessToken,
+                    accessExpiresAt = it.accessExpiresAt.toString(),
+                    refreshToken = it.refreshToken,
+                    refreshExpiresAt = it.refreshExpiresAt.toString()
+                ))
+            },
+            onFailure = { call.respond(HttpStatusCode.Unauthorized, it.message ?: "Unauthorized") }
+        )
     }
 
     post("/logout") {
         val token = call.receive<RefreshRequest>().refreshToken
-        val result = logout.revokeSingleRaw(token)   // <-- сырое значение
-        result.onSuccess { call.respond(HttpStatusCode.OK) }
-            .onFailure { call.respond(HttpStatusCode.BadRequest, it.message ?: "Error") }
+        val result = logout.revokeSingleRaw(token)
+        result.fold(
+            onSuccess = { call.respond(HttpStatusCode.OK) },
+            onFailure = { call.respond(HttpStatusCode.BadRequest, it.message ?: "Error") }
+        )
     }
 }
