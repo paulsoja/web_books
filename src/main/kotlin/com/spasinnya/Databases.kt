@@ -62,6 +62,10 @@ fun Application.configureDatabases() {
     val logout = LogoutUseCase(refreshRepo = refreshRepository, tokens = jwtService)
 
     val profileUseCase = GetUserProfileUseCase(userRepository = userRepository)
+    val updateUserProfileUseCase = UpdateUserProfileUseCase(
+        profiles = userRepository,
+        tx = ExposedTransactionRunner()
+    )
 
     routing {
         authRoutes(
@@ -73,7 +77,8 @@ fun Application.configureDatabases() {
         )
         authenticate("auth-jwt") {
             userRoutes(
-                getUserProfileUseCase = profileUseCase
+                getUserProfileUseCase = profileUseCase,
+                updateUserProfileUseCase = updateUserProfileUseCase
             )
             bookRoutes(
                 bookRepository = bookRepository
