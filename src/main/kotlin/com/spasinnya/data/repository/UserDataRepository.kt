@@ -9,6 +9,7 @@ import com.spasinnya.domain.model.User
 import com.spasinnya.domain.model.UserProfile
 import com.spasinnya.domain.repository.UserRepository
 import org.jetbrains.exposed.v1.core.ResultRow
+import org.jetbrains.exposed.v1.datetime.CurrentTimestamp
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.select
@@ -89,6 +90,19 @@ class UserDataRepository(
             .where { Users.id eq userId }
             .singleOrNull()
             ?.toUserProfile()
+    }
+
+    override suspend fun updateProfile(
+        userId: Long,
+        firstName: String?,
+        lastName: String?
+    ): Result<Unit> = database.runDb {
+        UserProfiles
+            .update({ UserProfiles.userId eq userId }) { row ->
+                if (firstName != null) row[UserProfiles.firstName] = firstName
+                if (lastName != null) row[UserProfiles.lastName] = lastName
+                row[updatedAt] = CurrentTimestamp
+            }
     }
 
     private fun ResultRow.toUser() = User(

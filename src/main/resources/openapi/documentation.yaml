@@ -233,6 +233,37 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
+    patch:
+      tags: [ Users ]
+      summary: Update current user profile
+      description: Updates first and/or last name of the current user. Requires JWT.
+      security:
+        - bearerAuth: [ ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateMeRequest'
+            examples:
+              updateFirstName:
+                value: { firstName: "Alice" }
+              updateBoth:
+                value: { firstName: "Alice", lastName: "Johnson" }
+      responses:
+        '200':
+          description: Updated user profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+        '400':
+          description: Validation error
+        '401':
+          description: Unauthorized
+        '404':
+          description: User not found
+
 components:
   securitySchemes:
     bearerAuth:
@@ -348,6 +379,16 @@ components:
           type: string
           format: uri
           example: https://cdn.example.com/avatars/42.png
+
+    UpdateMeRequest:
+      type: object
+      properties:
+        firstName:
+          type: string
+          maxLength: 100
+        lastName:
+          type: string
+          maxLength: 100
 
     ErrorResponse:
       type: object
