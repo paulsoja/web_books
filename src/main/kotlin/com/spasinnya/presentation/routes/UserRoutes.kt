@@ -23,7 +23,7 @@ fun Route.userRoutes(
 
         val result = getUserProfileUseCase.invoke(userId)
         result.fold(
-            onSuccess = { call.respond(result) },
+            onSuccess = { call.respond(it) },
             onFailure = { call.respond(HttpStatusCode.NotFound, "User not found") }
         )
     }
@@ -40,7 +40,7 @@ fun Route.userRoutes(
         val result = updateUserProfileUseCase(userId, req.firstName, req.lastName)
 
         result.fold(
-            onSuccess = { call.respond(result) },
+            onSuccess = { call.respond(it) },
             onFailure = { call.respond(HttpStatusCode.NotFound, "User not found") }
         )
     }

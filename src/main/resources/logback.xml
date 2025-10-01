@@ -1,27 +1,23 @@
 <configuration>
 
-    <!-- цветной вывод в консоль -->
-    <conversionRule conversionWord="clr" converterClass="org.springframework.boot.logging.logback.ColorConverter" />
-    <conversionRule conversionWord="wex" converterClass="org.springframework.boot.logging.logback.WhitespaceThrowableProxyConverter" />
-    <conversionRule conversionWord="wEx" converterClass="org.springframework.boot.logging.logback.ExtendedWhitespaceThrowableProxyConverter" />
-
-    <!-- аппендер для stdout -->
+    <!-- STDOUT: всё, кроме ERROR -->
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <!-- цветной вывод уровня через встроенный %highlight -->
         <withJansi>true</withJansi>
         <encoder>
-            <pattern>
-                %d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %clr(%-5level) %clr(%logger{36}){cyan} - %msg%n
-            </pattern>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %highlight(%-5level) %logger{36} - %msg%n</pattern>
         </encoder>
         <target>System.out</target>
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>TRACE</level>
+        </filter>
     </appender>
 
-    <!-- аппендер для ошибок в stderr -->
+    <!-- STDERR: только ERROR -->
     <appender name="STDERR" class="ch.qos.logback.core.ConsoleAppender">
+        <withJansi>true</withJansi>
         <encoder>
-            <pattern>
-                %d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %clr(%-5level) %clr(%logger{36}){red} - %msg%n
-            </pattern>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %highlight(%-5level) %logger{36} - %msg%n</pattern>
         </encoder>
         <target>System.err</target>
         <filter class="ch.qos.logback.classic.filter.LevelFilter">
@@ -31,7 +27,6 @@
         </filter>
     </appender>
 
-    <!-- корневой логгер -->
     <root level="INFO">
         <appender-ref ref="STDOUT"/>
         <appender-ref ref="STDERR"/>
