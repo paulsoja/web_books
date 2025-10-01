@@ -8,7 +8,6 @@ import com.spasinnya.domain.port.TokenService
 import java.util.*
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.days
-import kotlin.time.Duration.Companion.hours
 import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
 
@@ -19,7 +18,7 @@ class JwtServiceImpl : TokenService {
     private val issuer = System.getenv("JWT_ISSUER") ?: error("JWT_ISSUER is missing!")
     private val algorithm = Algorithm.HMAC256(secret)
 
-    private val accessTtl = 1.hours
+    private val accessTtl = 3.days
     private val refreshTtl = 7.days
 
     override fun issueTokens(userId: Long, email: String): IssuedTokens {
