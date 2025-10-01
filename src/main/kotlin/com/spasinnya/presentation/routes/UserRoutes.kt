@@ -18,7 +18,7 @@ fun Route.userRoutes(
         val principal = call.principal<JWTPrincipal>()
             ?: return@get call.respond(HttpStatusCode.Unauthorized)
 
-        val userId = principal.payload.getClaim("email").asString().toLongOrNull()
+        val userId = principal.payload.getClaim("sub").asString().toLongOrNull()
             ?: return@get call.respond(HttpStatusCode.Unauthorized, "Invalid token")
 
         val result = getUserProfileUseCase.invoke(userId)
