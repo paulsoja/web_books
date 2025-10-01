@@ -15,7 +15,6 @@ class UpdateUserProfileUseCase(
         firstName: String?,
         lastName: String?
     ): Result<UserProfile> = runCatching {
-        // простая валидация
         firstName?.let { require(it.length <= 100) { "firstName too long" } }
         lastName ?.let { require(it.length <= 100) { "lastName too long" } }
 
