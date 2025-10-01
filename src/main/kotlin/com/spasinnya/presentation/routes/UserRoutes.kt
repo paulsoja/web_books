@@ -2,6 +2,7 @@ package com.spasinnya.presentation.routes
 
 import com.spasinnya.domain.usecase.GetUserProfileUseCase
 import com.spasinnya.domain.usecase.UpdateUserProfileUseCase
+import com.spasinnya.presentation.mapper.toResponse
 import com.spasinnya.presentation.model.UpdateUserProfileRequest
 import io.ktor.http.*
 import io.ktor.server.auth.*
@@ -23,7 +24,7 @@ fun Route.userRoutes(
 
         val result = getUserProfileUseCase.invoke(userId)
         result.fold(
-            onSuccess = { call.respond(it) },
+            onSuccess = { userProfile -> call.respond(userProfile.toResponse()) },
             onFailure = { call.respond(HttpStatusCode.NotFound, "User not found") }
         )
     }
@@ -40,7 +41,7 @@ fun Route.userRoutes(
         val result = updateUserProfileUseCase(userId, req.firstName, req.lastName)
 
         result.fold(
-            onSuccess = { call.respond(it) },
+            onSuccess = { userProfile -> call.respond(userProfile.toResponse()) },
             onFailure = { call.respond(HttpStatusCode.NotFound, "User not found") }
         )
     }

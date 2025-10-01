@@ -124,7 +124,6 @@ class UserDataRepository(
         firstName = this[UserProfiles.firstName].orEmpty(),
         lastName = this[UserProfiles.lastName].orEmpty(),
         avatarUrl = this[UserProfiles.avatarUrl].orEmpty()
-
     )
 }
 
