@@ -736,6 +736,21 @@
     }
   }
 };
+            defs["PurchaseResponse"] = {
+  "required" : [ "bookId", "purchased" ],
+  "type" : "object",
+  "properties" : {
+    "bookId" : {
+      "type" : "integer",
+      "format" : "int64",
+      "example" : 123
+    },
+    "purchased" : {
+      "type" : "boolean",
+      "example" : true
+    }
+  }
+};
             defs["RefreshRequest"] = {
   "required" : [ "refreshToken" ],
   "type" : "object",

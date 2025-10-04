@@ -264,6 +264,38 @@ paths:
         '404':
           description: User not found
 
+/books/{id}/purchase:
+  post:
+    tags: [Purchases]
+    summary: Mark a book as purchased (temporary)
+    description: |
+      Marks the specified book as purchased for the current user.
+      Idempotent: if already purchased, returns 200.
+    security:
+      - bearerAuth: []
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema: { type: integer, format: int64 }
+        description: Book ID
+    responses:
+      '200':
+        description: Book marked as purchased
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PurchaseResponse'
+            examples:
+              ok:
+                value: { bookId: 123, purchased: true }
+      '400':
+        description: Bad request
+      '401':
+        description: Unauthorized
+      '404':
+        description: Book not found
+
 components:
   securitySchemes:
     bearerAuth:
@@ -389,6 +421,13 @@ components:
         lastName:
           type: string
           maxLength: 100
+
+    PurchaseResponse:
+      type: object
+      required: [ bookId, purchased ]
+      properties:
+        bookId: { type: integer, format: int64, example: 123 }
+        purchased: { type: boolean, example: true }
 
     ErrorResponse:
       type: object

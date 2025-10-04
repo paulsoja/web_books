@@ -44,4 +44,12 @@ class BookDataRepository(
     }
 
     override suspend fun getBookById(bookId: Int): Result<Book> = throw NotImplementedError()
+
+    override suspend fun exists(bookId: Long): Result<Boolean> = database.runDb {
+        Books
+            .selectAll()
+            .where { Books.id eq bookId }
+            .limit(1)
+            .any()
+    }
 }

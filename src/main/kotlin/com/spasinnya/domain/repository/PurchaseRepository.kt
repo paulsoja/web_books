@@ -13,4 +13,6 @@ interface PurchaseRepository {
     suspend fun isPurchased(userId: Long, bookId: Long): Result<Boolean>
 
     suspend fun findBookIdsByUser(userId: Long): Result<List<Long>>
+
+    suspend fun markPurchased(userId: Long, bookId: Long): Result<Unit>
 }
