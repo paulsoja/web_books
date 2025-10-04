@@ -1,8 +1,10 @@
 package com.spasinnya.data.repository.database.db
 
+import com.spasinnya.data.repository.database.table.Books
 import com.spasinnya.data.repository.database.table.OtpTokens
 import com.spasinnya.data.repository.database.table.RefreshTokens
 import com.spasinnya.data.repository.database.table.UserProfiles
+import com.spasinnya.data.repository.database.table.UserPurchases
 import com.spasinnya.data.repository.database.table.Users
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
@@ -51,7 +53,7 @@ fun connectAndMigrate(ds: DataSource): Database {
     val db = Database.connect(ds)
     transaction(db) {
         SchemaUtils.createMissingTablesAndColumns(
-            Users, UserProfiles, OtpTokens, RefreshTokens
+            Users, UserProfiles, OtpTokens, RefreshTokens, UserPurchases, Books
         )
     }
     return db
