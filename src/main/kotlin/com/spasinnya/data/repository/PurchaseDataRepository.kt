@@ -4,6 +4,7 @@ import com.spasinnya.data.extension.runDb
 import com.spasinnya.data.repository.database.table.UserPurchases
 import com.spasinnya.domain.repository.PurchaseRepository
 import org.jetbrains.exposed.v1.core.and
+import org.jetbrains.exposed.v1.exceptions.ExposedSQLException
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.selectAll
@@ -43,5 +44,24 @@ class PurchaseDataRepository(
             .selectAll()
             .where { UserPurchases.userId eq userId }
             .map { row -> row[UserPurchases.bookId] }
+    }
+
+    override suspend fun markPurchased(userId: Long, bookId: Long): Result<Unit> = runCatching {
+        database.runDb {
+            try {
+                UserPurchases.insert {
+                    it[UserPurchases.userId] = userId
+                    it[UserPurchases.bookId] = bookId
+                    it[UserPurchases.platform] = "manual"          // временно
+                    it[UserPurchases.storeProductId] = "manual"    // временно
+                    it[UserPurchases.purchaseToken] = "manual-$userId-$bookId"
+                    it[UserPurchases.orderId] = null
+                }
+            } catch (e: ExposedSQLException) {
+                // 23505 = unique_violation → запись уже есть (user_id, book_id уникальны)
+                if (e.sqlState == "23505") return@runDb
+                throw e
+            }
+        }
     }
 }

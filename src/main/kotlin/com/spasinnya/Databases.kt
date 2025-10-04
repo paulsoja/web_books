@@ -70,6 +70,11 @@ fun Application.configureDatabases() {
         purchaseRepository = purchaseRepository
     )
 
+    val purchaseBookSimpleUseCase = PurchaseBookSimpleUseCase(
+        books = bookRepository,
+        purchases = purchaseRepository
+    )
+
     routing {
         authRoutes(
             registerUser = register,
@@ -84,7 +89,8 @@ fun Application.configureDatabases() {
                 updateUserProfileUseCase = updateUserProfileUseCase
             )
             bookRoutes(
-                getBooksUseCase = getBooksUseCase
+                getBooksUseCase = getBooksUseCase,
+                purchaseBookSimpleUseCase = purchaseBookSimpleUseCase
             )
         }
     }
