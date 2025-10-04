@@ -1,10 +1,10 @@
 package com.spasinnya.data.repository.database.table
 
-import org.jetbrains.exposed.v1.core.dao.id.IntIdTable
+import org.jetbrains.exposed.v1.core.Table
 
 
-object Weeks : IntIdTable("weeks") {
-    val bookId = reference("book_id", Books)
+object Weeks : Table("weeks") {
+    val id = long("id").autoIncrement()
     val number = integer("number")
     val title = varchar("title", 255)
 }

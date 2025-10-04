@@ -1,12 +1,12 @@
-package com.spasinnya.domain.model.book
+package com.spasinnya.presentation.model
 
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class Book(
+data class BookShortResponse(
     val id: Long,
     val number: String,
     val title: String,
     val subtitle: String? = null,
-    val contents: BookContent,
+    val isPurchased: Boolean,
 )
