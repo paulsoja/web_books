@@ -13,4 +13,5 @@ interface UserRepository {
     suspend fun createEmptyProfile(userId: Long): Result<Unit>
     suspend fun findUserProfile(userId: Long): Result<UserProfile?>
     suspend fun updateProfile(userId: Long, firstName: String?, lastName: String?): Result<Unit>
+    suspend fun resetPendingUser(userId: Long, newPasswordHash: String): Result<Unit>
 }

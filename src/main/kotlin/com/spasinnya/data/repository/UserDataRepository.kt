@@ -8,6 +8,7 @@ import com.spasinnya.data.repository.database.table.Users
 import com.spasinnya.domain.model.User
 import com.spasinnya.domain.model.UserProfile
 import com.spasinnya.domain.repository.UserRepository
+import io.ktor.server.plugins.NotFoundException
 import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.datetime.CurrentTimestamp
 import org.jetbrains.exposed.v1.jdbc.Database
@@ -103,6 +104,19 @@ class UserDataRepository(
                 if (lastName != null) row[UserProfiles.lastName] = lastName
                 row[updatedAt] = CurrentTimestamp
             }
+    }
+
+    override suspend fun resetPendingUser(userId: Long, newPasswordHash: String): Result<Unit> = runCatching {
+        database.runDb {
+            val updated = Users.update({ Users.id eq userId }) { row ->
+                row[passwordHash] = newPasswordHash
+                row[status] = "pending"
+                row[confirmedAt] = null
+                row[lastLoginAt] = null
+                row[updatedAt] = CurrentTimestamp
+            }
+            if (updated == 0) throw NotFoundException("User not found")
+        }
     }
 
     private fun ResultRow.toUser() = User(
