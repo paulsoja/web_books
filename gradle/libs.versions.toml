@@ -1,16 +1,14 @@
 
 [versions]
-h2-version = "2.3.232"
+h2-version = "2.4.240"
 hikari = "7.0.2"
 kotlin-version = "2.2.0"
-ktor-version = "3.2.3"
+ktor-version = "3.3.1"
 logback-version = "1.5.18"
-postgres-version = "42.7.7"
-exposed = "1.0.0-beta-5"
-jakarta-api = "2.0.1"
-jakarta = "2.0.1"
-argon2 = "2.12"
-kotlinx-datetime = "0.6.0"
+postgres-version = "42.7.8"
+exposed = "1.0.0-rc-2"
+flyway-version = "11.15.0"
+kotlinx-datetime = "0.7.1"
 bcrypt = "0.10.2"
 
 [libraries]
@@ -18,6 +16,8 @@ ktor-server-core = { module = "io.ktor:ktor-server-core-jvm", version.ref = "kto
 ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx-json-jvm", version.ref = "ktor-version" }
 ktor-server-content-negotiation = { module = "io.ktor:ktor-server-content-negotiation-jvm", version.ref = "ktor-version" }
 postgresql = { module = "org.postgresql:postgresql", version.ref = "postgres-version" }
+flyway = { module = "org.flywaydb:flyway-core", version.ref = "flyway-version" }
+flyway-postgres = { module = "org.flywaydb:flyway-database-postgresql", version.ref = "flyway-version" }
 h2 = { module = "com.h2database:h2", version.ref = "h2-version" }
 hikari-cp = { module = "com.zaxxer:HikariCP", version.ref = "hikari" }
 exposed-core = { module = "org.jetbrains.exposed:exposed-core", version.ref = "exposed" }
@@ -32,10 +32,6 @@ ktor-server-status-pages = { module = "io.ktor:ktor-server-status-pages-jvm", ve
 ktor-server-auth = { module = "io.ktor:ktor-server-auth-jvm", version.ref = "ktor-version" }
 ktor-server-auth-jwt = { module = "io.ktor:ktor-server-auth-jwt-jvm", version.ref = "ktor-version" }
 ktor-server-netty = { module = "io.ktor:ktor-server-netty-jvm", version.ref = "ktor-version" }
-jakarta-mail = { module = "jakarta.mail:jakarta.mail-api", version.ref = "jakarta-api" }
-jakarta-mail-old = { module = "com.sun.mail:jakarta.mail", version.ref = "jakarta" }
-jakarta-activation = { module = "jakarta.activation:jakarta.activation-api", version.ref = "jakarta" }
-argon2 = { module = "de.mkammerer:argon2-jvm", version.ref = "argon2" }
 logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "logback-version" }
 ktor-server-test-host = { module = "io.ktor:ktor-server-test-host-jvm", version.ref = "ktor-version" }
 kotlin-test-junit = { module = "org.jetbrains.kotlin:kotlin-test-junit", version.ref = "kotlin-version" }

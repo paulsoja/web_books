@@ -1,16 +1,9 @@
 package com.spasinnya.data.repository.database.db
 
-import com.spasinnya.data.repository.database.table.Books
-import com.spasinnya.data.repository.database.table.OtpTokens
-import com.spasinnya.data.repository.database.table.RefreshTokens
-import com.spasinnya.data.repository.database.table.UserProfiles
-import com.spasinnya.data.repository.database.table.UserPurchases
-import com.spasinnya.data.repository.database.table.Users
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
+import org.flywaydb.core.Flyway
 import org.jetbrains.exposed.v1.jdbc.Database
-import org.jetbrains.exposed.v1.jdbc.SchemaUtils
-import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import java.net.URI
 import javax.sql.DataSource
 
@@ -49,12 +42,16 @@ fun buildHikariFromEnv(): HikariDataSource {
     return HikariDataSource(cfg)
 }
 
+fun connectFlyway(ds: DataSource) {
+    Flyway.configure()
+        .dataSource(ds)
+        .baselineVersion("0")
+        .baselineOnMigrate(true)
+        .load()
+        .migrate()
+}
+
 fun connectAndMigrate(ds: DataSource): Database {
     val db = Database.connect(ds)
-    transaction(db) {
-        SchemaUtils.createMissingTablesAndColumns(
-            Users, UserProfiles, OtpTokens, RefreshTokens, UserPurchases, Books
-        )
-    }
     return db
 }

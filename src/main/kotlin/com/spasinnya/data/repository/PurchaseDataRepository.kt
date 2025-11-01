@@ -4,6 +4,7 @@ import com.spasinnya.data.extension.runDb
 import com.spasinnya.data.repository.database.table.UserPurchases
 import com.spasinnya.domain.repository.PurchaseRepository
 import org.jetbrains.exposed.v1.core.and
+import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.exceptions.ExposedSQLException
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.insert

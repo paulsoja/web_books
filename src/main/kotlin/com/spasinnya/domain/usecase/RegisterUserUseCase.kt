@@ -21,7 +21,6 @@ class RegisterUserUseCase(
             val pwdHash = hasher.hash(rawPassword)
 
             if (existing == null) {
-                // 1) нет пользователя — создаём
                 val userId = users.createUser(
                     email = normalized,
                     passwordHash = pwdHash,
@@ -29,26 +28,16 @@ class RegisterUserUseCase(
                 ).getOrThrow()
 
                 users.createEmptyProfile(userId).getOrThrow()
-
             } else {
                 when (existing.status) {
                     "pending" -> {
-                        // 2) уже есть pending — перезапускаем регистрацию
                         users.resetPendingUser(
                             userId = existing.id,
                             newPasswordHash = pwdHash
                         ).getOrThrow()
-
-                        // профиль уже есть/не нужен — оставляем как есть
                     }
-                    "active", "blocked" -> {
-                        // 3) активный или заблокированный — запрещаем
-                        throw IllegalArgumentException("User already exists")
-                    }
-                    else -> {
-                        // на всякий случай, если добавятся новые статусы
-                        throw IllegalStateException("Unsupported user status: ${existing.status}")
-                    }
+                    "active", "blocked" -> throw IllegalArgumentException("User already exists")
+                    else -> throw IllegalStateException("Unsupported user status: ${existing.status}")
                 }
             }
 

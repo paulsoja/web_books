@@ -6,6 +6,7 @@ import com.spasinnya.data.repository.RefreshTokenDataRepository
 import com.spasinnya.data.repository.UserDataRepository
 import com.spasinnya.data.repository.database.db.buildHikariFromEnv
 import com.spasinnya.data.repository.database.db.connectAndMigrate
+import com.spasinnya.data.repository.database.db.connectFlyway
 import com.spasinnya.data.service.ExposedTransactionRunner
 import com.spasinnya.data.service.JwtServiceImpl
 import com.spasinnya.data.service.security.BcryptPasswordHasher
@@ -28,7 +29,10 @@ import io.ktor.server.routing.*
 
 fun Application.configureDatabases() {
     val dataSource = buildHikariFromEnv()
+    connectFlyway(dataSource)
     val database = connectAndMigrate(dataSource)
+
+    Bootstrap.runSeedAllBooksFromClasspath()
 
     val passwordHasher: PasswordHasher = BcryptPasswordHasher()
 
@@ -49,8 +53,11 @@ fun Application.configureDatabases() {
         hasher = passwordHasher,
         tx = ExposedTransactionRunner()
     )
-    val refreshSession =
-        RefreshSessionUseCase(users = userRepository, refreshRepo = refreshRepository, tokens = jwtService)
+    val refreshSession = RefreshSessionUseCase(
+        users = userRepository,
+        refreshRepo = refreshRepository,
+        tokens = jwtService
+    )
     val login = LoginUserUseCase(
         users = userRepository,
         refreshRepo = refreshRepository,
