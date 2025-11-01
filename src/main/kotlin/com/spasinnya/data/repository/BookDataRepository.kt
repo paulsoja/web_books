@@ -7,6 +7,7 @@ import com.spasinnya.domain.model.book.Book
 import com.spasinnya.domain.model.book.BookContent
 import com.spasinnya.domain.model.book.BookShort
 import com.spasinnya.domain.repository.BookRepository
+import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.selectAll
 
