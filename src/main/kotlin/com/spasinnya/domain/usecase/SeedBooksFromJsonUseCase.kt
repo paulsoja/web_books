@@ -1,6 +1,8 @@
 package com.spasinnya.domain.usecase
 
 import com.spasinnya.data.repository.database.dto.BooksRoot
+import com.spasinnya.data.repository.database.table.ContentBlockType
+import com.spasinnya.data.repository.database.table.HomeworkComponent
 import com.spasinnya.domain.port.TransactionRunner
 import com.spasinnya.domain.repository.ContentSeedRepository
 import kotlinx.serialization.json.Json
@@ -23,14 +25,16 @@ class SeedBooksFromJsonUseCase(
                         val lessonPk = repo.upsertLesson(weekPk, lesson.number, lesson.title, lesson.quote).getOrThrow()
 
                         lesson.content?.forEachIndexed { i, block ->
-                            repo.insertLessonBlock(lessonPk, i, block.type, block.data).getOrThrow()
+                            repo.insertLessonBlock(lessonPk, i, ContentBlockType.entries.firstOrNull { it.name.equals(block.type, ignoreCase = true) } ?: ContentBlockType.text, block.data).getOrThrow()
                         }
 
                         lesson.homeWork?.let { hw ->
                             if (!skipHomework) {
                                 val hwPk = repo.upsertHomework(lessonPk, hw.id, hw.question).getOrThrow()
                                 hw.block?.forEachIndexed { j, b ->
-                                    repo.insertHomeworkBlock(hwPk, j, b.component, b.answer, b.text).getOrThrow()
+                                    repo.insertHomeworkBlock(hwPk, j, HomeworkComponent.entries
+                                        .firstOrNull { it.name.equals(b.component, ignoreCase = true) }
+                                        ?: HomeworkComponent.text, b.answer, b.text).getOrThrow()
                                 }
                             }
                         }

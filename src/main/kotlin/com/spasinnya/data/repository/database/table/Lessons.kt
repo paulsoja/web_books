@@ -9,7 +9,7 @@ import org.jetbrains.exposed.v1.datetime.datetime
 object Lessons : Table("lessons") {
     val id = long("id").autoIncrement()
     val weekId = long("week_id").references(Weeks.id, onDelete = ReferenceOption.CASCADE)
-    val number = integer("lesson_number")
+    val number = integer("number")
     val title = text("title")
     val quote = text("quote").nullable()
     val createdAt = datetime("created_at").defaultExpression(CurrentDateTime)
