@@ -1,16 +1,3 @@
--- Схема под JSON books_ru.json
--- Типы перечислений
-DO $$
-BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'content_block_type') THEN
-    CREATE TYPE content_block_type AS ENUM ('text', 'image');
-  END IF;
-
-  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'homework_component') THEN
-    CREATE TYPE homework_component AS ENUM ('radio_button', 'check_box', 'edit_text', 'text', 'text_skip');
-  END IF;
-END$$;
-
 -- Таблица книг
 CREATE TABLE IF NOT EXISTS books (
   id           BIGINT PRIMARY KEY,               -- из JSON: books[].id (0,1,...)
@@ -52,7 +39,7 @@ CREATE TABLE IF NOT EXISTS lesson_content_blocks (
   id            BIGSERIAL PRIMARY KEY,
   lesson_id     BIGINT NOT NULL REFERENCES lessons(id) ON DELETE CASCADE,
   order_index   INTEGER NOT NULL,                 -- позиция в массиве content[]
-  block_type    content_block_type NOT NULL,      -- 'text' | 'image'
+  block_type    TEXT NOT NULL,      -- 'text' | 'image'
   data_text     TEXT,                             -- для type='text' -> content[].data
   data_image    TEXT,                             -- для type='image' -> content[].data (подпись/путь)
   CHECK (
@@ -75,7 +62,7 @@ CREATE TABLE IF NOT EXISTS homework_blocks (
   id            BIGSERIAL PRIMARY KEY,
   homework_id   BIGINT NOT NULL REFERENCES homeworks(id) ON DELETE CASCADE,
   order_index   INTEGER NOT NULL,                 -- позиция в home_work.block[]
-  component     homework_component NOT NULL,      -- 'radio_button' | 'check_box' | 'edit_text' | 'text' | 'text_skip'
+  component     TEXT NOT NULL,      -- 'radio_button' | 'check_box' | 'edit_text' | 'text' | 'text_skip'
   answer_label  TEXT,                             -- поле "answer" (вариант/ярлык/подсказка)
   extra_text    TEXT,                             -- поле "text" для некоторых блоков (например, text_skip с <space>)
   UNIQUE (homework_id, order_index)
