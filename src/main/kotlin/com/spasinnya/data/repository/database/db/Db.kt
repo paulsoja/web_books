@@ -39,6 +39,8 @@ fun buildHikariFromEnv(): HikariDataSource {
         }
     }
 
+    println("DB DEBUG: DATABASE_URL=$dbUrl")
+    println("DB DEBUG: jdbcUrl=${cfg.jdbcUrl}, user=${cfg.username}")
     return HikariDataSource(cfg)
 }
 
