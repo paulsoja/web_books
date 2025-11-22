@@ -4,6 +4,7 @@ import com.spasinnya.data.extension.runDb
 import com.spasinnya.data.repository.database.table.Weeks
 import com.spasinnya.domain.model.book.Week
 import com.spasinnya.domain.repository.WeekRepository
+import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.selectAll
 
@@ -14,6 +15,7 @@ class WeekDataRepository(
     override suspend fun getWeeksByBookId(bookId: Long): Result<List<Week>> = database.runDb {
         Weeks
             .selectAll()
+            .where { Weeks.bookId eq bookId }
             .map {
                 Week(
                     id = it[Weeks.id],
