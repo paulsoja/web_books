@@ -4,6 +4,7 @@ import com.spasinnya.data.repository.BookDataRepository
 import com.spasinnya.data.repository.PurchaseDataRepository
 import com.spasinnya.data.repository.RefreshTokenDataRepository
 import com.spasinnya.data.repository.UserDataRepository
+import com.spasinnya.data.repository.WeekDataRepository
 import com.spasinnya.data.repository.database.db.buildHikariFromEnv
 import com.spasinnya.data.repository.database.db.connectAndMigrate
 import com.spasinnya.data.repository.database.db.connectFlyway
@@ -16,10 +17,12 @@ import com.spasinnya.domain.repository.BookRepository
 import com.spasinnya.domain.repository.PurchaseRepository
 import com.spasinnya.domain.repository.RefreshTokenRepository
 import com.spasinnya.domain.repository.UserRepository
+import com.spasinnya.domain.repository.WeekRepository
 import com.spasinnya.domain.usecase.*
 import com.spasinnya.presentation.routes.authRoutes
 import com.spasinnya.presentation.routes.bookRoutes
 import com.spasinnya.presentation.routes.userRoutes
+import com.spasinnya.presentation.routes.weekRoutes
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.plugins.openapi.*
@@ -40,6 +43,7 @@ fun Application.configureDatabases() {
     val refreshRepository: RefreshTokenRepository = RefreshTokenDataRepository(database)
     val bookRepository: BookRepository = BookDataRepository(database)
     val purchaseRepository: PurchaseRepository = PurchaseDataRepository(database)
+    val weekRepository: WeekRepository = WeekDataRepository(database)
 
     val jwtService: TokenService = JwtServiceImpl()
 
@@ -82,6 +86,8 @@ fun Application.configureDatabases() {
         purchases = purchaseRepository
     )
 
+    val getWeeksUseCase = GetWeeksUseCase(weekRepository = weekRepository)
+
     routing {
         authRoutes(
             registerUser = register,
@@ -99,6 +105,7 @@ fun Application.configureDatabases() {
                 getBooksUseCase = getBooksUseCase,
                 purchaseBookSimpleUseCase = purchaseBookSimpleUseCase
             )
+            weekRoutes(getWeeksUseCase = getWeeksUseCase)
         }
     }
 

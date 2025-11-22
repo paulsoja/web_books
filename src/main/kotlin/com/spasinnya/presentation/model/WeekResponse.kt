@@ -1,6 +1,6 @@
-package com.spasinnya.domain.model.book
+package com.spasinnya.presentation.model
 
-data class Week(
+data class WeekResponse(
     val id: Long,
     val bookId: Long,
     val number: Int,
