@@ -4,6 +4,8 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class Lesson(
+    val id: Long,
+    val weekId: Long,
     val number: Int,
     val title: String,
     val quote: String? = null,

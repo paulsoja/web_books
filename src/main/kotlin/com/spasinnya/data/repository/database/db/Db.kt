@@ -16,7 +16,7 @@ fun buildHikariFromEnv(): HikariDataSource {
         isAutoCommit = false
         transactionIsolation = "TRANSACTION_REPEATABLE_READ"
 
-        if (!dbUrl.isNullOrBlank()) {
+        if (dbUrl.isNullOrBlank()) {
             val uri = URI(dbUrl)
             val (username, password) = uri.userInfo.split(":")
             val host = uri.host

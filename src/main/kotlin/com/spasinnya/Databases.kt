@@ -1,6 +1,7 @@
 package com.spasinnya
 
 import com.spasinnya.data.repository.BookDataRepository
+import com.spasinnya.data.repository.LessonDataRepository
 import com.spasinnya.data.repository.PurchaseDataRepository
 import com.spasinnya.data.repository.RefreshTokenDataRepository
 import com.spasinnya.data.repository.UserDataRepository
@@ -21,6 +22,7 @@ import com.spasinnya.domain.repository.WeekRepository
 import com.spasinnya.domain.usecase.*
 import com.spasinnya.presentation.routes.authRoutes
 import com.spasinnya.presentation.routes.bookRoutes
+import com.spasinnya.presentation.routes.lessonsRoutes
 import com.spasinnya.presentation.routes.userRoutes
 import com.spasinnya.presentation.routes.weekRoutes
 import io.ktor.server.application.*
@@ -44,6 +46,7 @@ fun Application.configureDatabases() {
     val bookRepository: BookRepository = BookDataRepository(database)
     val purchaseRepository: PurchaseRepository = PurchaseDataRepository(database)
     val weekRepository: WeekRepository = WeekDataRepository(database)
+    val lessonRepository = LessonDataRepository(database)
 
     val jwtService: TokenService = JwtServiceImpl()
 
@@ -88,6 +91,8 @@ fun Application.configureDatabases() {
 
     val getWeeksUseCase = GetWeeksUseCase(weekRepository = weekRepository)
 
+    val getLessonsByWeekIdUseCase = GetLessonsByWeekIdUseCase(lessonRepository = lessonRepository)
+
     routing {
         authRoutes(
             registerUser = register,
@@ -106,6 +111,7 @@ fun Application.configureDatabases() {
                 purchaseBookSimpleUseCase = purchaseBookSimpleUseCase
             )
             weekRoutes(getWeeksUseCase = getWeeksUseCase)
+            lessonsRoutes(getLessonsByWeekIdUseCase = getLessonsByWeekIdUseCase)
         }
     }
 
