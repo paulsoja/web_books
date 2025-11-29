@@ -6,6 +6,8 @@ import com.spasinnya.presentation.model.LessonContentResponse
 import com.spasinnya.presentation.model.LessonResponse
 
 fun Lesson.toPresentation() = LessonResponse(
+    id = id,
+    weekId = weekId,
     number = number,
     title = title,
     quote = quote,
