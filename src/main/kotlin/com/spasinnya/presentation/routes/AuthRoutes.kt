@@ -3,24 +3,23 @@
 package com.spasinnya.presentation.routes
 
 import com.spasinnya.domain.usecase.*
-import com.spasinnya.presentation.model.LoginRequest
-import com.spasinnya.presentation.model.RefreshRequest
-import com.spasinnya.presentation.model.RegisterRequest
-import com.spasinnya.presentation.model.TokenResponse
-import com.spasinnya.presentation.model.VerifyOtpRequest
+import com.spasinnya.presentation.model.*
 import io.ktor.http.*
 import io.ktor.server.plugins.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import kotlin.time.ExperimentalTime
+import kotlin.time.Instant
 
 fun Route.authRoutes(
     registerUser: RegisterUserUseCase,
-    verifyOtp: VerifyOtpUseCase,
+    requestOtpUseCase: RequestOtpUseCase,
+    verifyOtp: VerifyEmailOtpUseCase,
     loginUser: LoginUserUseCase,
     refreshSession: RefreshSessionUseCase,
-    logout: LogoutUseCase
+    logout: LogoutUseCase,
+    clock: () -> Instant
 ) {
     post("/register") {
         val req = call.receive<RegisterRequest>()
@@ -29,6 +28,32 @@ fun Route.authRoutes(
             onSuccess = { call.respond(HttpStatusCode.Created) },
             onFailure = { call.respond(HttpStatusCode.BadRequest, it.message ?: "Error") }
         )
+    }
+    post("/request-otp") {
+        val body = call.receive<RequestOtpBody>()
+
+        val res = requestOtpUseCase(
+            email = body.email,
+            userAgent = call.request.headers["User-Agent"],
+            ip = call.request.origin.remoteHost
+        )
+
+        if (res.isSuccess) {
+            // обычно для OTP возвращают NoContent
+            call.respond(HttpStatusCode.NoContent)
+        } else {
+            val msg = res.exceptionOrNull()?.message ?: "error"
+
+            // Если хочешь “не палить существование email” — ВСЕГДА отвечай 204.
+            // Но если пока не важно — можно так:
+            val status = when (msg) {
+                "Too many requests" -> HttpStatusCode.TooManyRequests
+                "Invalid email" -> HttpStatusCode.BadRequest
+                else -> HttpStatusCode.BadRequest
+            }
+
+            call.respond(status, mapOf("error" to msg))
+        }
     }
 
     post("/verify-otp") {
