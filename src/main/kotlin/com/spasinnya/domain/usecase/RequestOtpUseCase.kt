@@ -41,7 +41,7 @@ class RequestOtpUseCase(
 
         if (!allowed) error("Too many requests")
 
-        val code = generator.generate6Digits()
+        val code = generator.generate4Digits()
         val hash = hasher.hash(normalized, purpose, code)
         val expiresAt = now + ttl
 
