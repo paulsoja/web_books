@@ -6,5 +6,5 @@ class OtpGenerator(
     private val random: SecureRandom = SecureRandom()
 ) {
     fun generate4Digits(): String =
-        random.nextInt(1_000_000).toString().padStart(4, '0')
+        random.nextInt(10_000).toString().padStart(4, '0')
 }
