@@ -25,6 +25,7 @@ import com.spasinnya.domain.repository.RefreshTokenRepository
 import com.spasinnya.domain.repository.UserRepository
 import com.spasinnya.domain.repository.WeekRepository
 import com.spasinnya.domain.usecase.*
+import com.spasinnya.presentation.helper.LanguageFromHeaders
 import com.spasinnya.presentation.routes.authRoutes
 import com.spasinnya.presentation.routes.bookRoutes
 import com.spasinnya.presentation.routes.lessonsRoutes
@@ -147,6 +148,11 @@ fun Application.configureDatabases() {
             clock = { Clock.System.now() }
         )
         authenticate("auth-jwt") {
+            install(LanguageFromHeaders) {
+                headerName = "X-Language"
+                defaultLanguage = "en"
+                useAcceptLanguageFallback = true
+            }
             userRoutes(
                 getUserProfileUseCase = profileUseCase,
                 updateUserProfileUseCase = updateUserProfileUseCase

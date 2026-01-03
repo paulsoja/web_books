@@ -8,7 +8,8 @@ interface ContentSeedRepository {
         id: Long,
         number: String,
         title: String,
-        subtitle: String?
+        subtitle: String?,
+        language: String
     ): Result<Unit>
 
     fun upsertWeek(

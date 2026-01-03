@@ -16,7 +16,7 @@ class SeedBooksFromJsonUseCase(
         val root = json.decodeFromString<BooksRoot>(jsonContent)
         tx.inTransaction {
             for (book in root.books) {
-                repo.upsertBook(book.id, book.number, book.title, book.subtitle).getOrThrow()
+                repo.upsertBook(book.id, book.number, book.title, book.subtitle, book.language).getOrThrow()
 
                 for (week in book.contents.weeks) {
                     val weekPk = repo.upsertWeek(book.id, week.number, week.title).getOrThrow()

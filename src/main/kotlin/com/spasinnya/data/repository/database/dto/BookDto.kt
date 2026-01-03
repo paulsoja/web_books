@@ -8,5 +8,6 @@ data class BookDto(
     val number: String,
     val title: String,
     val subtitle: String? = null,
+    val language: String,
     val contents: ContentsDto
 )

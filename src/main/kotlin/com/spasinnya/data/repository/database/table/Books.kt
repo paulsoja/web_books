@@ -10,6 +10,7 @@ object Books : Table("books") {
     val number = text("number")
     val title = text("title")
     val subtitle = text("subtitle").nullable()
+    val language = varchar("language", length = 12).default("en")
     val createdAt = datetime("created_at").defaultExpression(CurrentDateTime)
 
     override val primaryKey = PrimaryKey(id)

@@ -5,6 +5,7 @@
       "number": "0",
       "title": "Доступно о Боге и Библии",
       "subtitle": "То, о чем Вы хотели спросить",
+      "language": "ru",
       "contents": {
         "weeks": [
           {
@@ -2166,6 +2167,7 @@
       "number": "1",
       "title": "Рождение свыше",
       "subtitle": "",
+      "language": "ru",
       "contents": {
         "weeks": [
           {

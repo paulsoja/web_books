@@ -8,8 +8,8 @@ class GetBooksUseCase(
     private val bookRepository: BookRepository,
     private val purchaseRepository: PurchaseRepository,
 ) {
-    suspend fun invoke(userId: Long): Result<List<BookShort>> = runCatching {
-        val books = bookRepository.getAllBooksWithContent().getOrThrow()
+    suspend fun invoke(userId: Long, language: String): Result<List<BookShort>> = runCatching {
+        val books = bookRepository.getAllBooksWithContentByLanguage(language).getOrThrow()
         val purchasedIds = purchaseRepository.findBookIdsByUser(userId).getOrThrow().toSet()
 
         books.map { book ->
@@ -18,6 +18,7 @@ class GetBooksUseCase(
                 number = book.number,
                 title = book.title,
                 subtitle = book.subtitle,
+                language = book.language,
                 isPurchased = book.id in purchasedIds
             )
         }

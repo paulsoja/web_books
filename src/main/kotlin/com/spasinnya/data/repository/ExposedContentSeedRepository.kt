@@ -13,10 +13,12 @@ class ExposedContentSeedRepository : ContentSeedRepository {
         id: Long,
         number: String,
         title: String,
-        subtitle: String?
+        subtitle: String?,
+        language: String
     ): Result<Unit> = runCatching {
         Books.insertIgnore {
             it[Books.id] = id
+            it[Books.language] = language
             it[Books.number] = number
             it[Books.title] = title
             it[Books.subtitle] = subtitle

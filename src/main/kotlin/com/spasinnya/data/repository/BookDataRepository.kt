@@ -15,33 +15,41 @@ class BookDataRepository(
     private val database: Database
 ) : BookRepository {
 
-    override suspend fun getAllBooksWithContent(): Result<List<Book>> = database.runDb {
-        Books.selectAll().map {
-            Book(
-                id = it[Books.id],
-                title = it[Books.title],
-                number = it[Books.number],
-                subtitle = it[Books.subtitle],
-                contents = BookContent(
-                    weeks = emptyList(),
-                    author = Author(
-                        "", "", ""
+    override suspend fun getAllBooksWithContentByLanguage(language: String): Result<List<Book>> = database.runDb {
+        Books
+            .selectAll()
+            .where { Books.language eq language }
+            .map {
+                Book(
+                    id = it[Books.id],
+                    title = it[Books.title],
+                    number = it[Books.number],
+                    subtitle = it[Books.subtitle],
+                    language = it[Books.language],
+                    contents = BookContent(
+                        weeks = emptyList(),
+                        author = Author(
+                            "", "", ""
+                        )
                     )
                 )
-            )
-        }
+            }
     }
 
-    override suspend fun getBooks(): Result<List<BookShort>> = database.runDb {
-        Books.selectAll().map {
-            BookShort(
-                id = it[Books.id],
-                title = it[Books.title],
-                number = it[Books.number],
-                subtitle = it[Books.subtitle],
-                isPurchased = false
-            )
-        }
+    override suspend fun getBooksByLanguage(language: String): Result<List<BookShort>> = database.runDb {
+        Books
+            .selectAll()
+            .where { Books.language eq language }
+            .map {
+                BookShort(
+                    id = it[Books.id],
+                    title = it[Books.title],
+                    number = it[Books.number],
+                    subtitle = it[Books.subtitle],
+                    language = it[Books.language],
+                    isPurchased = false
+                )
+            }
     }
 
     override suspend fun getBookById(bookId: Int): Result<Book> = throw NotImplementedError()

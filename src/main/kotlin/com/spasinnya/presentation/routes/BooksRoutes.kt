@@ -2,6 +2,7 @@ package com.spasinnya.presentation.routes
 
 import com.spasinnya.domain.usecase.GetBooksUseCase
 import com.spasinnya.domain.usecase.PurchaseBookSimpleUseCase
+import com.spasinnya.presentation.helper.language
 import com.spasinnya.presentation.mapper.toPresentation
 import com.spasinnya.presentation.model.PurchaseResponse
 import io.ktor.http.*
@@ -21,7 +22,9 @@ fun Route.bookRoutes(
         val userId = principal.payload.getClaim("sub").asString().toLongOrNull()
             ?: return@get call.respond(HttpStatusCode.Unauthorized, "Invalid token")
 
-        val result = getBooksUseCase.invoke(userId)
+        val lang = call.language()
+
+        val result = getBooksUseCase.invoke(userId, lang)
 
         result.fold(
             onSuccess = { books -> call.respond(HttpStatusCode.OK, books.map { it.toPresentation() }) },
