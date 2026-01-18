@@ -18,8 +18,8 @@ class JwtServiceImpl : TokenService {
     private val issuer = System.getenv("JWT_ISSUER") ?: error("JWT_ISSUER is missing!")
     private val algorithm = Algorithm.HMAC256(secret)
 
-    private val accessTtl = 3.days
-    private val refreshTtl = 7.days
+    private val accessTtl = 30.days
+    private val refreshTtl = 60.days
 
     override fun issueTokens(userId: Long, email: String): IssuedTokens {
         val now: Instant = Clock.System.now()
