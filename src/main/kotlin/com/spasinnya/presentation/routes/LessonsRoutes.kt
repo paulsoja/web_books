@@ -28,7 +28,7 @@ fun Route.lessonsRoutes(
         val result = getLessonsByWeekIdUseCase.invoke(weekId)
         result.fold(
             onSuccess = { lessons -> call.respond(HttpStatusCode.OK, lessons.map { it.toPresentation() }) },
-            onFailure = { call.respond(HttpStatusCode.NotFound, "Lessons not found") }
+            onFailure = { call.respond(HttpStatusCode.NotFound, mapOf("error" to "Lessons not found")) }
         )
     }
 }

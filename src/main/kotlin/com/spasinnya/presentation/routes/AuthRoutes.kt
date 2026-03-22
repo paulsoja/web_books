@@ -26,7 +26,7 @@ fun Route.authRoutes(
         val result = registerUser(req.email, req.password)
         result.fold(
             onSuccess = { call.respond(HttpStatusCode.Created) },
-            onFailure = { call.respond(HttpStatusCode.BadRequest, it.message ?: "Error") }
+            onFailure = { call.respond(HttpStatusCode.BadRequest, mapOf("error" to (it.message ?: "Error"))) }
         )
     }
     post("/request-otp") {
@@ -70,7 +70,7 @@ fun Route.authRoutes(
                     )
                 )
             },
-            onFailure = { call.respond(HttpStatusCode.BadRequest, it.message ?: "Error") }
+            onFailure = { call.respond(HttpStatusCode.BadRequest, mapOf("error" to (it.message ?: "Error"))) }
         )
     }
 
@@ -91,7 +91,7 @@ fun Route.authRoutes(
                     )
                 )
             },
-            onFailure = { call.respond(HttpStatusCode.Unauthorized, it.message ?: "Unauthorized") }
+            onFailure = { call.respond(HttpStatusCode.Unauthorized, mapOf("error" to (it.message ?: "Unauthorized"))) }
         )
     }
 
@@ -107,7 +107,7 @@ fun Route.authRoutes(
                     refreshExpiresAt = it.refreshExpiresAt.toString()
                 ))
             },
-            onFailure = { call.respond(HttpStatusCode.Unauthorized, it.message ?: "Unauthorized") }
+            onFailure = { call.respond(HttpStatusCode.Unauthorized, mapOf("error" to (it.message ?: "Unauthorized"))) }
         )
     }
 
@@ -116,7 +116,7 @@ fun Route.authRoutes(
         val result = logout.revokeSingleRaw(token)
         result.fold(
             onSuccess = { call.respond(HttpStatusCode.OK) },
-            onFailure = { call.respond(HttpStatusCode.BadRequest, it.message ?: "Error") }
+            onFailure = { call.respond(HttpStatusCode.BadRequest, mapOf("error" to (it.message ?: "Error"))) }
         )
     }
 }

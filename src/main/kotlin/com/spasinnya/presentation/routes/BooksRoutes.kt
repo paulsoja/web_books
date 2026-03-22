@@ -20,7 +20,7 @@ fun Route.bookRoutes(
             ?: return@get call.respond(HttpStatusCode.Unauthorized)
 
         val userId = principal.payload.getClaim("sub").asString().toLongOrNull()
-            ?: return@get call.respond(HttpStatusCode.Unauthorized, "Invalid token")
+            ?: return@get call.respond(HttpStatusCode.Unauthorized, mapOf("error" to "Invalid token"))
 
         val lang = call.language()
 
@@ -28,7 +28,7 @@ fun Route.bookRoutes(
 
         result.fold(
             onSuccess = { books -> call.respond(HttpStatusCode.OK, books.map { it.toPresentation() }) },
-            onFailure = { call.respond(HttpStatusCode.NotFound, "Books not found") }
+            onFailure = { call.respond(HttpStatusCode.NotFound, mapOf("error" to "Books not found")) }
         )
     }
 
@@ -37,10 +37,10 @@ fun Route.bookRoutes(
             ?: return@post call.respond(HttpStatusCode.Unauthorized)
 
         val userId = principal.payload.getClaim("sub").asString().toLongOrNull()
-            ?: return@post call.respond(HttpStatusCode.Unauthorized, "Invalid token")
+            ?: return@post call.respond(HttpStatusCode.Unauthorized, mapOf("error" to "Invalid token"))
 
         val bookId = call.parameters["id"]?.toLongOrNull()
-            ?: return@post call.respond(HttpStatusCode.BadRequest, "Invalid book id")
+            ?: return@post call.respond(HttpStatusCode.BadRequest, mapOf("error" to "Invalid book id"))
 
         val result = purchaseBookSimpleUseCase(userId, bookId)
         result.fold(
@@ -52,13 +52,13 @@ fun Route.bookRoutes(
                     is IllegalArgumentException -> {
                         // из use case: require(exists) -> "Book not found"
                         if (e.message?.contains("Book not found") == true)
-                            call.respond(HttpStatusCode.NotFound, "Book not found")
+                            call.respond(HttpStatusCode.NotFound, mapOf("error" to "Book not found"))
                         else
-                            call.respond(HttpStatusCode.BadRequest, e.message ?: "Bad request")
+                            call.respond(HttpStatusCode.BadRequest, mapOf("error" to (e.message ?: "Bad request")))
                     }
                     else -> {
                         e.printStackTrace()
-                        call.respond(HttpStatusCode.InternalServerError, "Internal server error")
+                        call.respond(HttpStatusCode.InternalServerError, mapOf("error" to "Internal server error"))
                     }
                 }
             }

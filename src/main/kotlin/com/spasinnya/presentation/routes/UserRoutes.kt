@@ -20,12 +20,12 @@ fun Route.userRoutes(
             ?: return@get call.respond(HttpStatusCode.Unauthorized)
 
         val userId = principal.payload.getClaim("sub").asString().toLongOrNull()
-            ?: return@get call.respond(HttpStatusCode.Unauthorized, "Invalid token")
+            ?: return@get call.respond(HttpStatusCode.Unauthorized, mapOf("error" to "Invalid token"))
 
         val result = getUserProfileUseCase.invoke(userId)
         result.fold(
             onSuccess = { userProfile -> call.respond(HttpStatusCode.OK, userProfile.toResponse()) },
-            onFailure = { call.respond(HttpStatusCode.NotFound, "User not found") }
+            onFailure = { call.respond(HttpStatusCode.NotFound, mapOf("error" to "User not found")) }
         )
     }
 
@@ -34,7 +34,7 @@ fun Route.userRoutes(
             ?: return@patch call.respond(HttpStatusCode.Unauthorized)
 
         val userId = principal.payload.getClaim("sub").asString().toLongOrNull()
-            ?: return@patch call.respond(HttpStatusCode.Unauthorized, "Invalid token")
+            ?: return@patch call.respond(HttpStatusCode.Unauthorized, mapOf("error" to "Invalid token"))
 
         val req = call.receive<UpdateUserProfileRequest>()
 
@@ -42,7 +42,7 @@ fun Route.userRoutes(
 
         result.fold(
             onSuccess = { userProfile -> call.respond(HttpStatusCode.OK, userProfile.toResponse()) },
-            onFailure = { call.respond(HttpStatusCode.NotFound, "User not found") }
+            onFailure = { call.respond(HttpStatusCode.NotFound, mapOf("error" to "User not found")) }
         )
     }
 }

@@ -28,7 +28,7 @@ fun Route.weekRoutes(
 
         result.fold(
             onSuccess = { weeks -> call.respond(HttpStatusCode.OK, weeks.map { it.toPresentation() }) },
-            onFailure = { call.respond(HttpStatusCode.NotFound, "Weeks not found") }
+            onFailure = { call.respond(HttpStatusCode.NotFound, mapOf("error" to "Weeks not found")) }
         )
     }
 }
