@@ -5,6 +5,7 @@ import com.spasinnya.data.repository.ExposedOtpRepository
 import com.spasinnya.data.repository.LessonDataRepository
 import com.spasinnya.data.repository.PurchaseDataRepository
 import com.spasinnya.data.repository.RefreshTokenDataRepository
+import com.spasinnya.data.repository.UserAnswerDataRepository
 import com.spasinnya.data.repository.UserDataRepository
 import com.spasinnya.data.repository.WeekDataRepository
 import com.spasinnya.data.repository.database.db.buildHikariFromEnv
@@ -22,12 +23,14 @@ import com.spasinnya.domain.port.TokenService
 import com.spasinnya.domain.repository.BookRepository
 import com.spasinnya.domain.repository.PurchaseRepository
 import com.spasinnya.domain.repository.RefreshTokenRepository
+import com.spasinnya.domain.repository.UserAnswerRepository
 import com.spasinnya.domain.repository.UserRepository
 import com.spasinnya.domain.repository.WeekRepository
 import com.spasinnya.domain.usecase.*
 import com.spasinnya.presentation.helper.LanguageFromHeaders
 import com.spasinnya.presentation.routes.authRoutes
 import com.spasinnya.presentation.routes.bookRoutes
+import com.spasinnya.presentation.routes.homeworkRoutes
 import com.spasinnya.presentation.routes.lessonsRoutes
 import com.spasinnya.presentation.routes.userRoutes
 import com.spasinnya.presentation.routes.weekRoutes
@@ -61,6 +64,7 @@ fun Application.configureDatabases() {
     val purchaseRepository: PurchaseRepository = PurchaseDataRepository(database)
     val weekRepository: WeekRepository = WeekDataRepository(database)
     val lessonRepository = LessonDataRepository(database)
+    val userAnswerRepository: UserAnswerRepository = UserAnswerDataRepository(database)
     val otpRepository = ExposedOtpRepository()
 
     val jwtService: TokenService = JwtServiceImpl()
@@ -137,6 +141,9 @@ fun Application.configureDatabases() {
 
     val getLessonsByWeekIdUseCase = GetLessonsByWeekIdUseCase(lessonRepository = lessonRepository)
 
+    val saveHomeworkAnswersUseCase = SaveHomeworkAnswersUseCase(userAnswerRepository = userAnswerRepository)
+    val getHomeworkAnswersUseCase = GetHomeworkAnswersUseCase(userAnswerRepository = userAnswerRepository)
+
     routing {
         authRoutes(
             registerUser = register,
@@ -163,6 +170,10 @@ fun Application.configureDatabases() {
             )
             weekRoutes(getWeeksUseCase = getWeeksUseCase)
             lessonsRoutes(getLessonsByWeekIdUseCase = getLessonsByWeekIdUseCase)
+            homeworkRoutes(
+                saveHomeworkAnswersUseCase = saveHomeworkAnswersUseCase,
+                getHomeworkAnswersUseCase = getHomeworkAnswersUseCase
+            )
         }
     }
 

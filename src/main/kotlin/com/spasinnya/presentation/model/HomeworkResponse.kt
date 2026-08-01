@@ -1,0 +1,8 @@
+package com.spasinnya.presentation.model
+
+import kotlinx.serialization.Serializable
+
+@Serializable
+data class HomeworkResponse(
+    val answers: List<HomeworkAnswerDto>
+)
