@@ -69,7 +69,17 @@ fun Route.homeworkRoutes(
         )
 
         result.fold(
-            onSuccess = { call.respond(HttpStatusCode.NoContent) },
+            onSuccess = {
+                val lessonsResult = getLessonsWithAnswersUseCase.invoke(
+                    userId = userId,
+                    bookId = bookId,
+                    weekNumber = weekNumber
+                )
+                lessonsResult.fold(
+                    onSuccess = { lessons -> call.respond(HttpStatusCode.OK, lessons) },
+                    onFailure = { call.respond(HttpStatusCode.InternalServerError, mapOf("error" to "Failed to load lessons")) }
+                )
+            },
             onFailure = { call.respond(HttpStatusCode.InternalServerError, mapOf("error" to "Failed to save answers")) }
         )
     }
