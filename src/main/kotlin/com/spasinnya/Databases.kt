@@ -143,6 +143,7 @@ fun Application.configureDatabases() {
 
     val saveHomeworkAnswersUseCase = SaveHomeworkAnswersUseCase(userAnswerRepository = userAnswerRepository)
     val getHomeworkAnswersUseCase = GetHomeworkAnswersUseCase(userAnswerRepository = userAnswerRepository)
+    val getLessonsWithAnswersUseCase = GetLessonsWithAnswersUseCase(userAnswerRepository = userAnswerRepository)
 
     routing {
         authRoutes(
@@ -172,7 +173,8 @@ fun Application.configureDatabases() {
             lessonsRoutes(getLessonsByWeekIdUseCase = getLessonsByWeekIdUseCase)
             homeworkRoutes(
                 saveHomeworkAnswersUseCase = saveHomeworkAnswersUseCase,
-                getHomeworkAnswersUseCase = getHomeworkAnswersUseCase
+                getHomeworkAnswersUseCase = getHomeworkAnswersUseCase,
+                getLessonsWithAnswersUseCase = getLessonsWithAnswersUseCase
             )
         }
     }

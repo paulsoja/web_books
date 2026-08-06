@@ -24,4 +24,11 @@ interface UserAnswerRepository {
         weekNumber: Int,
         lessonNumber: Int
     ): Result<List<HomeworkAnswer>>
+
+    /** Returns a list of lesson numbers that have answers for the given user, book and week. */
+    suspend fun getLessonsWithAnswers(
+        userId: Long,
+        bookId: String,
+        weekNumber: Int
+    ): Result<List<Int>>
 }

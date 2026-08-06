@@ -11,6 +11,7 @@ import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.datetime.CurrentTimestamp
 import org.jetbrains.exposed.v1.jdbc.Database
+import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.upsert
 import kotlin.time.ExperimentalTime
@@ -53,7 +54,6 @@ class UserAnswerDataRepository(
                 it[UserAnswers.answerData] = payload
             }
         }
-        Unit
     }
 
     override suspend fun getLessonAnswers(
@@ -79,5 +79,22 @@ class UserAnswerDataRepository(
                     values = stored.map { HomeworkValue(id = it.id, answer = it.answer) }
                 )
             }
+    }
+
+    override suspend fun getLessonsWithAnswers(
+        userId: Long,
+        bookId: String,
+        weekNumber: Int
+    ): Result<List<Int>> = database.runDb {
+        UserAnswers
+            .select(UserAnswers.lessonNumber)
+            .where {
+                (UserAnswers.userId eq userId) and
+                    (UserAnswers.bookId eq bookId) and
+                    (UserAnswers.weekNumber eq weekNumber)
+            }
+            .withDistinct()
+            .map { it[UserAnswers.lessonNumber] }
+            .sorted()
     }
 }
