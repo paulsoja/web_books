@@ -1,5 +1,6 @@
 package com.spasinnya.presentation.routes
 
+import com.spasinnya.domain.usecase.GetBookHomeworkStatusUseCase
 import com.spasinnya.domain.usecase.GetHomeworkAnswersUseCase
 import com.spasinnya.domain.usecase.GetLessonsWithAnswersUseCase
 import com.spasinnya.domain.usecase.SaveHomeworkAnswersUseCase
@@ -18,10 +19,30 @@ import io.ktor.server.routing.put
 fun Route.homeworkRoutes(
     saveHomeworkAnswersUseCase: SaveHomeworkAnswersUseCase,
     getHomeworkAnswersUseCase: GetHomeworkAnswersUseCase,
-    getLessonsWithAnswersUseCase: GetLessonsWithAnswersUseCase
+    getLessonsWithAnswersUseCase: GetLessonsWithAnswersUseCase,
+    getBookHomeworkStatusUseCase: GetBookHomeworkStatusUseCase
 ) {
     val basePath = "/homework/{bookId}/weeks/{weekNumber}/lessons/{lessonNumber}"
     val lessonsListPath = "/homework/{bookId}/weeks/{weekNumber}/lessons"
+    val bookStatusPath = "/homework/{bookId}"
+
+    get(bookStatusPath) {
+        val userId = call.userIdOrNull()
+            ?: return@get call.respond(HttpStatusCode.Unauthorized, mapOf("error" to "Invalid token"))
+
+        val bookId = call.parameters["bookId"]?.takeIf { it.isNotBlank() }
+            ?: return@get call.respond(HttpStatusCode.BadRequest, mapOf("error" to "Missing path parameter 'bookId'"))
+
+        val result = getBookHomeworkStatusUseCase.invoke(
+            userId = userId,
+            bookId = bookId
+        )
+
+        result.fold(
+            onSuccess = { status -> call.respond(HttpStatusCode.OK, status) },
+            onFailure = { call.respond(HttpStatusCode.InternalServerError, mapOf("error" to "Failed to load homework status")) }
+        )
+    }
 
     get(lessonsListPath) {
         val userId = call.userIdOrNull()

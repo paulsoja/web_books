@@ -5,9 +5,11 @@ import com.spasinnya.data.repository.database.dto.StoredAnswerValue
 import com.spasinnya.data.repository.database.table.UserAnswers
 import com.spasinnya.domain.model.homework.HomeworkAnswer
 import com.spasinnya.domain.model.homework.HomeworkValue
+import com.spasinnya.domain.model.homework.LessonHomeworkStatus
 import com.spasinnya.domain.repository.UserAnswerRepository
 import kotlinx.serialization.json.Json
 import org.jetbrains.exposed.v1.core.and
+import org.jetbrains.exposed.v1.core.count
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.datetime.CurrentTimestamp
 import org.jetbrains.exposed.v1.jdbc.Database
@@ -96,5 +98,26 @@ class UserAnswerDataRepository(
             .withDistinct()
             .map { it[UserAnswers.lessonNumber] }
             .sorted()
+    }
+
+    override suspend fun getHomeworkStatusByBookId(
+        userId: Long,
+        bookId: String
+    ): Result<List<LessonHomeworkStatus>> = database.runDb {
+        val countColumn = UserAnswers.id.count()
+        UserAnswers
+            .select(UserAnswers.lessonNumber, countColumn)
+            .where {
+                (UserAnswers.userId eq userId) and
+                    (UserAnswers.bookId eq bookId)
+            }
+            .groupBy(UserAnswers.lessonNumber)
+            .map {
+                LessonHomeworkStatus(
+                    lessonNumber = it[UserAnswers.lessonNumber],
+                    completed = it[countColumn]
+                )
+            }
+            .sortedBy { it.lessonNumber }
     }
 }

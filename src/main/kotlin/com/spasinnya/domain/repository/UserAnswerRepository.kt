@@ -1,6 +1,7 @@
 package com.spasinnya.domain.repository
 
 import com.spasinnya.domain.model.homework.HomeworkAnswer
+import com.spasinnya.domain.model.homework.LessonHomeworkStatus
 
 interface UserAnswerRepository {
 
@@ -31,4 +32,10 @@ interface UserAnswerRepository {
         bookId: String,
         weekNumber: Int
     ): Result<List<Int>>
+
+    /** Returns count of answers per lesson for the given user and book. */
+    suspend fun getHomeworkStatusByBookId(
+        userId: Long,
+        bookId: String
+    ): Result<List<LessonHomeworkStatus>>
 }
