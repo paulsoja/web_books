@@ -4,8 +4,8 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class LessonHomeworkStatus(
-    @SerialName("lesson_number")
-    val lessonNumber: Int,
+data class WeekHomeworkStatus(
+    @SerialName("week_number")
+    val weekNumber: Int,
     val completed: Long
 )

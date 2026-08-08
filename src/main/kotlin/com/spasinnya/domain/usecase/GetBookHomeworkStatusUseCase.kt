@@ -1,6 +1,6 @@
 package com.spasinnya.domain.usecase
 
-import com.spasinnya.domain.model.homework.LessonHomeworkStatus
+import com.spasinnya.domain.model.homework.WeekHomeworkStatus
 import com.spasinnya.domain.repository.UserAnswerRepository
 
 class GetBookHomeworkStatusUseCase(
@@ -9,7 +9,7 @@ class GetBookHomeworkStatusUseCase(
     suspend operator fun invoke(
         userId: Long,
         bookId: String
-    ): Result<List<LessonHomeworkStatus>> {
+    ): Result<List<WeekHomeworkStatus>> {
         return userAnswerRepository.getHomeworkStatusByBookId(
             userId = userId,
             bookId = bookId

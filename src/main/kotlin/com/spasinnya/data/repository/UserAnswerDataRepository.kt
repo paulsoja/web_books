@@ -5,7 +5,7 @@ import com.spasinnya.data.repository.database.dto.StoredAnswerValue
 import com.spasinnya.data.repository.database.table.UserAnswers
 import com.spasinnya.domain.model.homework.HomeworkAnswer
 import com.spasinnya.domain.model.homework.HomeworkValue
-import com.spasinnya.domain.model.homework.LessonHomeworkStatus
+import com.spasinnya.domain.model.homework.WeekHomeworkStatus
 import com.spasinnya.domain.repository.UserAnswerRepository
 import kotlinx.serialization.json.Json
 import org.jetbrains.exposed.v1.core.and
@@ -103,21 +103,21 @@ class UserAnswerDataRepository(
     override suspend fun getHomeworkStatusByBookId(
         userId: Long,
         bookId: String
-    ): Result<List<LessonHomeworkStatus>> = database.runDb {
+    ): Result<List<WeekHomeworkStatus>> = database.runDb {
         val countColumn = UserAnswers.id.count()
         UserAnswers
-            .select(UserAnswers.lessonNumber, countColumn)
+            .select(UserAnswers.weekNumber, countColumn)
             .where {
                 (UserAnswers.userId eq userId) and
                     (UserAnswers.bookId eq bookId)
             }
-            .groupBy(UserAnswers.lessonNumber)
+            .groupBy(UserAnswers.weekNumber)
             .map {
-                LessonHomeworkStatus(
-                    lessonNumber = it[UserAnswers.lessonNumber],
+                WeekHomeworkStatus(
+                    weekNumber = it[UserAnswers.weekNumber],
                     completed = it[countColumn]
                 )
             }
-            .sortedBy { it.lessonNumber }
+            .sortedBy { it.weekNumber }
     }
 }
