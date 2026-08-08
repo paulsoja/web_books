@@ -9,7 +9,7 @@ import com.spasinnya.domain.model.homework.WeekHomeworkStatus
 import com.spasinnya.domain.repository.UserAnswerRepository
 import kotlinx.serialization.json.Json
 import org.jetbrains.exposed.v1.core.and
-import org.jetbrains.exposed.v1.core.count
+import org.jetbrains.exposed.v1.core.countDistinct
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.datetime.CurrentTimestamp
 import org.jetbrains.exposed.v1.jdbc.Database
@@ -104,7 +104,7 @@ class UserAnswerDataRepository(
         userId: Long,
         bookId: String
     ): Result<List<WeekHomeworkStatus>> = database.runDb {
-        val countColumn = UserAnswers.id.count()
+        val countColumn = UserAnswers.lessonNumber.countDistinct()
         UserAnswers
             .select(UserAnswers.weekNumber, countColumn)
             .where {
