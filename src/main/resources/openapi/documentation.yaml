@@ -1,11 +1,12 @@
 openapi: 3.0.3
 info:
   title: Web Books API
-  version: "1.1.0"
+  version: "1.2.0"
   description: |
     API для мобильного приложения "Спасіння".
     Включает авторизацию, работу с книгами, неделями, уроками и домашними заданиями.
     ⚠️ OTP сейчас замокан и всегда равен "1111".
+    Для сброса пароля используйте /request-otp с purpose=PASSWORD_RESET.
 servers:
   - url: https://web-books-1.onrender.com
     description: Render (prod)
@@ -99,6 +100,27 @@ paths:
                 $ref: '#/components/schemas/TokenResponse'
         '400':
           description: Неверный код или пользователь не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /reset-password:
+    post:
+      tags: [Auth]
+      summary: Сброс пароля по OTP
+      description: Устанавливает новый пароль, если передан верный OTP-код.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResetPasswordRequest'
+      responses:
+        '204':
+          description: Пароль успешно изменён
+        '400':
+          description: Неверный код, истекший OTP или ошибка валидации
           content:
             application/json:
               schema:
@@ -676,6 +698,23 @@ components:
         email:
           type: string
           format: email
+        purpose:
+          type: string
+          enum: [LOGIN, PASSWORD_RESET]
+          default: LOGIN
+
+    ResetPasswordRequest:
+      type: object
+      required: [email, code, newPassword]
+      properties:
+        email:
+          type: string
+          format: email
+        code:
+          type: string
+        newPassword:
+          type: string
+          minLength: 8
 
     Week:
       type: object

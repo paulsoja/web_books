@@ -19,6 +19,7 @@ fun Route.authRoutes(
     loginUser: LoginUserUseCase,
     refreshSession: RefreshSessionUseCase,
     logout: LogoutUseCase,
+    resetPassword: ResetPasswordUseCase,
     clock: () -> Instant
 ) {
     post("/register") {
@@ -34,6 +35,7 @@ fun Route.authRoutes(
 
         val res = requestOtpUseCase(
             email = body.email,
+            purpose = body.purpose,
             userAgent = call.request.headers["User-Agent"],
             ip = call.request.origin.remoteHost
         )
@@ -54,6 +56,15 @@ fun Route.authRoutes(
 
             call.respond(status, mapOf("error" to msg))
         }
+    }
+
+    post("/reset-password") {
+        val req = call.receive<ResetPasswordRequest>()
+        val result = resetPassword(req.email, req.code, req.newPassword)
+        result.fold(
+            onSuccess = { call.respond(HttpStatusCode.NoContent) },
+            onFailure = { call.respond(HttpStatusCode.BadRequest, mapOf("error" to (it.message ?: "Error"))) }
+        )
     }
 
     post("/verify-otp") {

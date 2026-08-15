@@ -120,6 +120,13 @@ fun Application.configureDatabases() {
         tokens = jwtService
     )
     val logout = LogoutUseCase(refreshRepo = refreshRepository, tokens = jwtService)
+    val resetPassword = ResetPasswordUseCase(
+        users = userRepository,
+        otps = otpRepository,
+        otpHasher = OtpHasher(pepper = System.getenv("OTP_PEPPER")),
+        passwordHasher = passwordHasher,
+        clock = { Clock.System.now() }
+    )
 
     val profileUseCase = GetUserProfileUseCase(userRepository = userRepository)
     val updateUserProfileUseCase = UpdateUserProfileUseCase(
@@ -154,6 +161,7 @@ fun Application.configureDatabases() {
             loginUser = login,
             refreshSession = refreshSession,
             logout = logout,
+            resetPassword = resetPassword,
             clock = { Clock.System.now() }
         )
         authenticate("auth-jwt") {

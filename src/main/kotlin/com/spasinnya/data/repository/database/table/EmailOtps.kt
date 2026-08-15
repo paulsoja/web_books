@@ -4,7 +4,7 @@ import org.jetbrains.exposed.v1.core.dao.id.LongIdTable
 import org.jetbrains.exposed.v1.datetime.timestamp
 import kotlin.time.ExperimentalTime
 
-enum class OtpPurpose { LOGIN }
+enum class OtpPurpose { LOGIN, PASSWORD_RESET }
 
 @OptIn(ExperimentalTime::class)
 object EmailOtps : LongIdTable("email_otp") {

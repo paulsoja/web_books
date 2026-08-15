@@ -55,10 +55,15 @@ class RequestOtpUseCase(
             ua = userAgent
         ).getOrThrow()
 
+        val subject = when (purpose) {
+            OtpPurpose.LOGIN -> "Your register code"
+            OtpPurpose.PASSWORD_RESET -> "Password reset code"
+        }
+
         emailSender.send(
             EmailMessage(
                 to = normalized,
-                subject = "Your register code",
+                subject = subject,
                 text = buildString {
                     appendLine("Your code: $code")
                     appendLine("It expires in ${ttl.inWholeMinutes} minutes.")
