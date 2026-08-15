@@ -1,9 +1,10 @@
 openapi: 3.0.3
 info:
-  title: Auth API
-  version: "1.0.0"
+  title: Web Books API
+  version: "1.1.0"
   description: |
-    Минимальный Auth API для регистрации, подтверждения OTP (замокано), логина, рефреша и логаута.
+    API для мобильного приложения "Спасіння".
+    Включает авторизацию, работу с книгами, неделями, уроками и домашними заданиями.
     ⚠️ OTP сейчас замокан и всегда равен "1111".
 servers:
   - url: https://web-books-1.onrender.com
@@ -16,6 +17,12 @@ tags:
     description: Регистрация, подтверждение, логин/рефреш/логаут
   - name: Books
     description: Работа с книгами
+  - name: Weeks
+    description: Список недель книги
+  - name: Lessons
+    description: Список уроков недели
+  - name: Homework
+    description: Работа с домашними заданиями
   - name: Users
     description: Профиль текущего пользователя
 
@@ -41,6 +48,33 @@ paths:
           description: Пользователь создан
         '400':
           description: Ошибка (например, пользователь уже существует)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /request-otp:
+    post:
+      tags: [Auth]
+      summary: Запрос OTP-кода на e-mail
+      description: Отправляет код подтверждения на указанный email.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RequestOtpRequest'
+      responses:
+        '204':
+          description: Код отправлен (или email не найден, если политика безопасности скрывает это)
+        '400':
+          description: Ошибка валидации email
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          description: Слишком много запросов
           content:
             application/json:
               schema:
@@ -175,17 +209,6 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Book'
-              examples:
-                sample:
-                  value:
-                    - id: 1
-                      title: "Clean Architecture"
-                      author: "Robert C. Martin"
-                      createdAt: "2025-09-01T12:30:00Z"
-                    - id: 2
-                      title: "Kotlin in Action"
-                      author: "Dmitry Jemerov"
-                      createdAt: "2025-09-10T09:00:00Z"
         '401':
           description: Missing or invalid JWT token
           content:
@@ -196,6 +219,76 @@ paths:
                 unauthorized:
                   value:
                     message: "Unauthorized"
+
+  /weeks/{bookId}:
+    get:
+      tags: [Weeks]
+      summary: Получить список недель для книги
+      parameters:
+        - in: path
+          name: bookId
+          required: true
+          schema:
+            type: integer
+            format: int64
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Список недель
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Week'
+        '401':
+          description: Не авторизован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Книга не найдена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /lessons/{weekId}:
+    get:
+      tags: [Lessons]
+      summary: Получить список уроков для недели
+      parameters:
+        - in: path
+          name: weekId
+          required: true
+          schema:
+            type: integer
+            format: int64
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Список уроков
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Lesson'
+        '401':
+          description: Не авторизован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Неделя не найдена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
   /me:
     get:
@@ -264,37 +357,176 @@ paths:
         '404':
           description: User not found
 
-/books/{id}/purchase:
-  post:
-    tags: [Purchases]
-    summary: Mark a book as purchased (temporary)
-    description: |
-      Marks the specified book as purchased for the current user.
-      Idempotent: if already purchased, returns 200.
-    security:
-      - bearerAuth: []
-    parameters:
-      - in: path
-        name: id
+  /homework/{bookId}:
+    get:
+      tags: [Homework]
+      summary: Получить статус выполнения ДЗ по всей книге
+      parameters:
+        - in: path
+          name: bookId
+          required: true
+          schema:
+            type: string
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Список статусов по неделям
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/WeekHomeworkStatus'
+        '401':
+          description: Не авторизован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /homework/{bookId}/weeks/{weekNumber}/lessons:
+    get:
+      tags: [Homework]
+      summary: Получить список номеров уроков с выполненным ДЗ в конкретной неделе
+      parameters:
+        - in: path
+          name: bookId
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: weekNumber
+          required: true
+          schema:
+            type: integer
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Список номеров уроков
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: integer
+        '401':
+          description: Не авторизован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /homework/{bookId}/weeks/{weekNumber}/lessons/{lessonNumber}:
+    get:
+      tags: [Homework]
+      summary: Получить ответы пользователя на ДЗ в конкретном уроке
+      parameters:
+        - in: path
+          name: bookId
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: weekNumber
+          required: true
+          schema:
+            type: integer
+        - in: path
+          name: lessonNumber
+          required: true
+          schema:
+            type: integer
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Ответы пользователя
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HomeworkResponse'
+        '401':
+          description: Не авторизован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    put:
+      tags: [Homework]
+      summary: Сохранить/обновить ответы пользователя на ДЗ
+      parameters:
+        - in: path
+          name: bookId
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: weekNumber
+          required: true
+          schema:
+            type: integer
+        - in: path
+          name: lessonNumber
+          required: true
+          schema:
+            type: integer
+      security:
+        - bearerAuth: []
+      requestBody:
         required: true
-        schema: { type: integer, format: int64 }
-        description: Book ID
-    responses:
-      '200':
-        description: Book marked as purchased
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PurchaseResponse'
-            examples:
-              ok:
-                value: { bookId: 123, purchased: true }
-      '400':
-        description: Bad request
-      '401':
-        description: Unauthorized
-      '404':
-        description: Book not found
+              $ref: '#/components/schemas/HomeworkRequest'
+      responses:
+        '200':
+          description: Успешно сохранено. Возвращает обновлённый список номеров уроков с ДЗ в этой неделе.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: integer
+        '401':
+          description: Не авторизован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /books/{id}/purchase:
+    post:
+      tags: [Purchases]
+      summary: Mark a book as purchased (temporary)
+      description: |
+        Marks the specified book as purchased for the current user.
+        Idempotent: if already purchased, returns 200.
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer, format: int64 }
+          description: Book ID
+      responses:
+        '200':
+          description: Book marked as purchased
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PurchaseResponse'
+              examples:
+                ok:
+                  value: { bookId: 123, purchased: true }
+        '400':
+          description: Bad request
+        '401':
+          description: Unauthorized
+        '404':
+          description: Book not found
 
 components:
   securitySchemes:
@@ -371,20 +603,20 @@ components:
 
     Book:
       type: object
-      required: [id, title, author, createdAt]
+      required: [id, number, title, isPurchased]
       properties:
         id:
           type: integer
           format: int64
+        number:
+          type: string
         title:
           type: string
-          maxLength: 255
-        author:
+        subtitle:
           type: string
-          maxLength: 255
-        createdAt:
-          type: string
-          format: date-time
+          nullable: true
+        isPurchased:
+          type: boolean
 
     UserProfile:
       type: object
@@ -436,3 +668,106 @@ components:
         message:
           type: string
           example: Something went wrong
+
+    RequestOtpRequest:
+      type: object
+      required: [email]
+      properties:
+        email:
+          type: string
+          format: email
+
+    Week:
+      type: object
+      required: [id, bookId, number, title]
+      properties:
+        id:
+          type: integer
+          format: int64
+        bookId:
+          type: integer
+          format: int64
+        number:
+          type: integer
+        title:
+          type: string
+
+    Lesson:
+      type: object
+      required: [id, weekId, number, title, content]
+      properties:
+        id:
+          type: integer
+          format: int64
+        weekId:
+          type: integer
+          format: int64
+        number:
+          type: integer
+        title:
+          type: string
+        quote:
+          type: string
+          nullable: true
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/LessonContent'
+
+    LessonContent:
+      type: object
+      required: [type, data]
+      properties:
+        type:
+          type: string
+          enum: [text, image]
+        data:
+          type: string
+
+    WeekHomeworkStatus:
+      type: object
+      required: [week_number, completed]
+      properties:
+        week_number:
+          type: integer
+        completed:
+          type: integer
+          format: int64
+
+    HomeworkResponse:
+      type: object
+      required: [answers]
+      properties:
+        answers:
+          type: array
+          items:
+            $ref: '#/components/schemas/HomeworkAnswer'
+
+    HomeworkRequest:
+      type: object
+      required: [answers]
+      properties:
+        answers:
+          type: array
+          items:
+            $ref: '#/components/schemas/HomeworkAnswer'
+
+    HomeworkAnswer:
+      type: object
+      required: [questionId, values]
+      properties:
+        questionId:
+          type: string
+        values:
+          type: array
+          items:
+            $ref: '#/components/schemas/HomeworkValue'
+
+    HomeworkValue:
+      type: object
+      required: [id, answer]
+      properties:
+        id:
+          type: string
+        answer:
+          type: string
