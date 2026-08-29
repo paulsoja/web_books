@@ -1,5 +1,6 @@
 package com.spasinnya.domain.repository
 
+import com.spasinnya.domain.model.homework.BookHomeworkStatus
 import com.spasinnya.domain.model.homework.HomeworkAnswer
 import com.spasinnya.domain.model.homework.WeekHomeworkStatus
 
@@ -38,4 +39,9 @@ interface UserAnswerRepository {
         userId: Long,
         bookId: String
     ): Result<List<WeekHomeworkStatus>>
+
+    /** Returns count of completed lessons per book for the given user across all books. */
+    suspend fun getAllBooksHomeworkStatus(
+        userId: Long
+    ): Result<List<BookHomeworkStatus>>
 }

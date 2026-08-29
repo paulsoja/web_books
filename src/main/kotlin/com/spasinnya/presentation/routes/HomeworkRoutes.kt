@@ -1,5 +1,6 @@
 package com.spasinnya.presentation.routes
 
+import com.spasinnya.domain.usecase.GetAllBooksHomeworkStatusUseCase
 import com.spasinnya.domain.usecase.GetBookHomeworkStatusUseCase
 import com.spasinnya.domain.usecase.GetHomeworkAnswersUseCase
 import com.spasinnya.domain.usecase.GetLessonsWithAnswersUseCase
@@ -20,11 +21,27 @@ fun Route.homeworkRoutes(
     saveHomeworkAnswersUseCase: SaveHomeworkAnswersUseCase,
     getHomeworkAnswersUseCase: GetHomeworkAnswersUseCase,
     getLessonsWithAnswersUseCase: GetLessonsWithAnswersUseCase,
-    getBookHomeworkStatusUseCase: GetBookHomeworkStatusUseCase
+    getBookHomeworkStatusUseCase: GetBookHomeworkStatusUseCase,
+    getAllBooksHomeworkStatusUseCase: GetAllBooksHomeworkStatusUseCase
 ) {
     val basePath = "/homework/{bookId}/weeks/{weekNumber}/lessons/{lessonNumber}"
     val lessonsListPath = "/homework/{bookId}/weeks/{weekNumber}/lessons"
     val bookStatusPath = "/homework/{bookId}"
+    val allBooksStatusPath = "/homework"
+
+    get(allBooksStatusPath) {
+        val userId = call.userIdOrNull()
+            ?: return@get call.respond(HttpStatusCode.Unauthorized, mapOf("error" to "Invalid token"))
+
+        val result = getAllBooksHomeworkStatusUseCase.invoke(
+            userId = userId
+        )
+
+        result.fold(
+            onSuccess = { status -> call.respond(HttpStatusCode.OK, status) },
+            onFailure = { call.respond(HttpStatusCode.InternalServerError, mapOf("error" to "Failed to load homework status")) }
+        )
+    }
 
     get(bookStatusPath) {
         val userId = call.userIdOrNull()

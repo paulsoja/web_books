@@ -3,6 +3,7 @@ package com.spasinnya.data.repository
 import com.spasinnya.data.extension.runDb
 import com.spasinnya.data.repository.database.dto.StoredAnswerValue
 import com.spasinnya.data.repository.database.table.UserAnswers
+import com.spasinnya.domain.model.homework.BookHomeworkStatus
 import com.spasinnya.domain.model.homework.HomeworkAnswer
 import com.spasinnya.domain.model.homework.HomeworkValue
 import com.spasinnya.domain.model.homework.WeekHomeworkStatus
@@ -119,5 +120,22 @@ class UserAnswerDataRepository(
                 )
             }
             .sortedBy { it.weekNumber }
+    }
+
+    override suspend fun getAllBooksHomeworkStatus(
+        userId: Long
+    ): Result<List<BookHomeworkStatus>> = database.runDb {
+        UserAnswers
+            .select(UserAnswers.bookId, UserAnswers.weekNumber, UserAnswers.lessonNumber)
+            .where { UserAnswers.userId eq userId }
+            .withDistinct()
+            .groupBy { it[UserAnswers.bookId] }
+            .map { (bookId, rows) ->
+                BookHomeworkStatus(
+                    bookId = bookId,
+                    completedLessons = rows.size
+                )
+            }
+            .sortedBy { it.bookId }
     }
 }
