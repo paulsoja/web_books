@@ -1,68 +1,61 @@
+@file:OptIn(kotlin.time.ExperimentalTime::class)
+
 package com.spasinnya.data.repository
 
 import com.spasinnya.data.extension.runDb
-import com.spasinnya.data.repository.database.table.UserPurchases
+import com.spasinnya.data.repository.database.table.*
+import com.spasinnya.domain.exception.PurchaseError
+import com.spasinnya.domain.exception.PurchaseException
+import com.spasinnya.domain.model.purchase.VerifiedPurchase
 import com.spasinnya.domain.repository.PurchaseRepository
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
-import org.jetbrains.exposed.v1.exceptions.ExposedSQLException
 import org.jetbrains.exposed.v1.jdbc.Database
-import org.jetbrains.exposed.v1.jdbc.insert
+import org.jetbrains.exposed.v1.jdbc.insertIgnore
 import org.jetbrains.exposed.v1.jdbc.selectAll
 
-class PurchaseDataRepository(
-    private val database: Database
-) : PurchaseRepository {
-
-    override suspend fun addPurchase(
-        userId: Long,
-        bookId: Long,
-        platform: String,
-        storeProductId: String,
-        purchaseToken: String,
-        orderId: String?
-    ): Result<Long> = database.runDb {
-        UserPurchases.insert {
-            it[UserPurchases.userId] = userId
-            it[UserPurchases.bookId] = bookId
-            it[UserPurchases.platform] = platform
-            it[UserPurchases.storeProductId] = storeProductId
-            it[UserPurchases.purchaseToken] = purchaseToken
-            it[UserPurchases.orderId] = orderId
-        } get UserPurchases.id
-    }
-
-    override suspend fun isPurchased(userId: Long, bookId: Long): Result<Boolean> = database.runDb {
-        UserPurchases
-            .selectAll()
-            .where { (UserPurchases.userId eq userId) and (UserPurchases.bookId eq bookId) }
-            .limit(1)
-            .any()
-    }
-
-    override suspend fun findBookIdsByUser(userId: Long): Result<List<Long>> = database.runDb {
-        UserPurchases
-            .selectAll()
-            .where { UserPurchases.userId eq userId }
-            .map { row -> row[UserPurchases.bookId] }
-    }
-
-    override suspend fun markPurchased(userId: Long, bookId: Long): Result<Unit> = runCatching {
-        database.runDb {
-            try {
-                UserPurchases.insert {
-                    it[UserPurchases.userId] = userId
-                    it[UserPurchases.bookId] = bookId
-                    it[UserPurchases.platform] = "manual"          // временно
-                    it[UserPurchases.storeProductId] = "manual"    // временно
-                    it[UserPurchases.purchaseToken] = "manual-$userId-$bookId"
-                    it[UserPurchases.orderId] = null
-                }
-            } catch (e: ExposedSQLException) {
-                // 23505 = unique_violation → запись уже есть (user_id, book_id уникальны)
-                if (e.sqlState == "23505") return@runDb
-                throw e
-            }
+class PurchaseDataRepository(private val database: Database) : PurchaseRepository {
+    override suspend fun recordAndGrant(userId: Long, purchase: VerifiedPurchase): Result<Long> = database.runDb {
+        // The unique constraint arbitrates concurrent submissions. Exposed retries SQL
+        // serialization failures as a whole transaction at REPEATABLE READ isolation.
+        val existing = Purchases.selectAll().where {
+            (Purchases.platform eq purchase.platform) and
+                (Purchases.storeTransactionId eq purchase.storeTransactionId)
+        }.singleOrNull()
+        val productId = if (existing != null) {
+            existing[Purchases.productId]
+        } else {
+            StoreProductMappings.selectAll().where {
+                (StoreProductMappings.platform eq purchase.platform) and
+                    (StoreProductMappings.storeProductId eq purchase.storeProductId)
+            }.singleOrNull()?.get(StoreProductMappings.productId)
+                ?: throw PurchaseException(PurchaseError.UNKNOWN_PRODUCT)
         }
+        Purchases.insertIgnore {
+            it[Purchases.userId] = userId
+            it[Purchases.platform] = purchase.platform
+            it[Purchases.productId] = productId
+            it[storeProductId] = purchase.storeProductId
+            it[storeTransactionId] = purchase.storeTransactionId
+            it[environment] = purchase.environment
+            it[purchasedAt] = purchase.purchasedAt
+        }
+        val persisted = Purchases.selectAll().where {
+            (Purchases.platform eq purchase.platform) and
+                (Purchases.storeTransactionId eq purchase.storeTransactionId)
+        }.single()
+        if (persisted[Purchases.userId] != userId) {
+            throw PurchaseException(PurchaseError.TRANSACTION_ALREADY_CLAIMED)
+        }
+        if (persisted[Purchases.storeProductId] != purchase.storeProductId ||
+            persisted[Purchases.environment] != purchase.environment) {
+            throw PurchaseException(PurchaseError.INVALID_PROOF)
+        }
+        val grantedProductId = persisted[Purchases.productId]
+        Entitlements.insertIgnore {
+            it[Entitlements.userId] = userId
+            it[Entitlements.productId] = grantedProductId
+        }
+        grantedProductId
     }
 }

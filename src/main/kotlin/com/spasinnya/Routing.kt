@@ -1,14 +1,6 @@
 package com.spasinnya
 
-import com.spasinnya.domain.exception.BadRequestException
-import com.spasinnya.domain.exception.ConflictException
-import com.spasinnya.domain.exception.ForbiddenException
-import com.spasinnya.domain.exception.InvalidOtpException
-import com.spasinnya.domain.exception.NotFoundException
-import com.spasinnya.domain.exception.TooManyRequestsException
-import com.spasinnya.domain.exception.UnauthorizedException
-import com.spasinnya.domain.exception.UnprocessableEntityException
-import com.spasinnya.domain.exception.UserNotFoundException
+import com.spasinnya.domain.exception.*
 import com.spasinnya.domain.model.ErrorResponse
 import io.ktor.http.*
 import io.ktor.server.application.*
@@ -17,6 +9,15 @@ import io.ktor.server.response.*
 
 fun Application.configureRouting() {
     install(StatusPages) {
+        exception<PurchaseException> { call, cause ->
+            val status = when (cause.error) {
+                PurchaseError.TRANSACTION_ALREADY_CLAIMED -> HttpStatusCode.Conflict
+                PurchaseError.VERIFICATION_UNAVAILABLE -> HttpStatusCode.ServiceUnavailable
+                PurchaseError.UNKNOWN_PRODUCT -> HttpStatusCode.UnprocessableEntity
+                else -> HttpStatusCode.BadRequest
+            }
+            call.respond(status, ErrorResponse(reason = cause.error.name, statusCode = status.description))
+        }
         exception<UnauthorizedException> { call, cause ->
             call.respond(
                 status = HttpStatusCode.Unauthorized,

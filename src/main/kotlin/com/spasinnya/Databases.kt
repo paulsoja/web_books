@@ -4,6 +4,9 @@ import com.spasinnya.data.repository.BookDataRepository
 import com.spasinnya.data.repository.ExposedOtpRepository
 import com.spasinnya.data.repository.LessonDataRepository
 import com.spasinnya.data.repository.PurchaseDataRepository
+import com.spasinnya.data.repository.EntitlementDataRepository
+import com.spasinnya.data.service.purchase.PurchaseVerificationConfig
+import com.spasinnya.presentation.routes.purchaseRoutes
 import com.spasinnya.data.repository.RefreshTokenDataRepository
 import com.spasinnya.data.repository.UserAnswerDataRepository
 import com.spasinnya.data.repository.UserDataRepository
@@ -62,6 +65,8 @@ fun Application.configureDatabases() {
     val refreshRepository: RefreshTokenRepository = RefreshTokenDataRepository(database)
     val bookRepository: BookRepository = BookDataRepository(database)
     val purchaseRepository: PurchaseRepository = PurchaseDataRepository(database)
+    val entitlementRepository = EntitlementDataRepository(database)
+    val purchaseVerifier = PurchaseVerificationConfig.createVerifier()
     val weekRepository: WeekRepository = WeekDataRepository(database)
     val lessonRepository = LessonDataRepository(database)
     val userAnswerRepository: UserAnswerRepository = UserAnswerDataRepository(database)
@@ -136,13 +141,11 @@ fun Application.configureDatabases() {
 
     val getBooksUseCase = GetBooksUseCase(
         bookRepository = bookRepository,
-        purchaseRepository = purchaseRepository
+        entitlementRepository = entitlementRepository
     )
 
-    val purchaseBookSimpleUseCase = PurchaseBookSimpleUseCase(
-        books = bookRepository,
-        purchases = purchaseRepository
-    )
+    val submitPurchase = SubmitPurchaseUseCase(purchaseVerifier, purchaseRepository)
+    val getEntitlements = GetEntitlementsUseCase(entitlementRepository)
 
     val getWeeksUseCase = GetWeeksUseCase(weekRepository = weekRepository)
 
@@ -176,9 +179,9 @@ fun Application.configureDatabases() {
                 updateUserProfileUseCase = updateUserProfileUseCase
             )
             bookRoutes(
-                getBooksUseCase = getBooksUseCase,
-                purchaseBookSimpleUseCase = purchaseBookSimpleUseCase
+                getBooksUseCase = getBooksUseCase
             )
+            purchaseRoutes(submitPurchase, getEntitlements)
             weekRoutes(getWeeksUseCase = getWeeksUseCase)
             lessonsRoutes(getLessonsByWeekIdUseCase = getLessonsByWeekIdUseCase)
             homeworkRoutes(

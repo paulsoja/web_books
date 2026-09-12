@@ -2,15 +2,15 @@ package com.spasinnya.domain.usecase
 
 import com.spasinnya.domain.model.book.BookShort
 import com.spasinnya.domain.repository.BookRepository
-import com.spasinnya.domain.repository.PurchaseRepository
+import com.spasinnya.domain.repository.EntitlementRepository
 
 class GetBooksUseCase(
     private val bookRepository: BookRepository,
-    private val purchaseRepository: PurchaseRepository,
+    private val entitlementRepository: EntitlementRepository,
 ) {
     suspend fun invoke(userId: Long, language: String): Result<List<BookShort>> = runCatching {
         val books = bookRepository.getAllBooksWithContentByLanguage(language).getOrThrow()
-        val purchasedIds = purchaseRepository.findBookIdsByUser(userId).getOrThrow().toSet()
+        val purchasedIds = entitlementRepository.findProductIdsByUser(userId).getOrThrow().toSet()
 
         books.map { book ->
             BookShort(

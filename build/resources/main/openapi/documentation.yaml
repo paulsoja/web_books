@@ -540,37 +540,76 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
-  /books/{id}/purchase:
+  /purchases/ios:
     post:
       tags: [Purchases]
-      summary: Mark a book as purchased (temporary)
+      summary: Verify a one-time iOS purchase and grant permanent book access
       description: |
-        Marks the specified book as purchased for the current user.
-        Idempotent: if already purchased, returns 200.
+        Uses the JWT subject as user ID. Idempotent for the same transaction and user.
+        Verification currently uses opt-in development fixtures; real Apple JWS is not yet supported.
       security:
         - bearerAuth: []
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema: { type: integer, format: int64 }
-          description: Book ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [signedTransaction]
+              properties:
+                signedTransaction:
+                  type: string
+                  minLength: 1
+                  maxLength: 65536
       responses:
         '200':
-          description: Book marked as purchased
+          description: Authoritative backend access; productId is the shared books.id
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PurchaseResponse'
-              examples:
-                ok:
-                  value: { bookId: 123, purchased: true }
+                type: object
+                required: [productId, granted]
+                properties:
+                  productId: { type: integer, format: int64 }
+                  granted: { type: boolean }
+              example: { productId: 1, granted: true }
         '400':
-          description: Bad request
+          description: Invalid proof, wrong app, unsupported store/environment, or malformed request
         '401':
           description: Unauthorized
-        '404':
-          description: Book not found
+        '409':
+          description: Transaction already claimed by another account
+        '422':
+          description: Unknown store product
+        '503':
+          description: Store verification is disabled
+        '500':
+          description: Unexpected infrastructure failure
+
+  /me/entitlements:
+    get:
+      tags: [Purchases]
+      summary: Get the authenticated user's permanent book access on any platform
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Shared backend book IDs, sorted ascending
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [products]
+                properties:
+                  products:
+                    type: array
+                    items: { type: integer, format: int64 }
+              example: { products: [1, 2] }
+        '401':
+          description: Unauthorized
+        '500':
+          description: Unexpected infrastructure failure
 
 components:
   securitySchemes:
@@ -697,13 +736,6 @@ components:
         lastName:
           type: string
           maxLength: 100
-
-    PurchaseResponse:
-      type: object
-      required: [ bookId, purchased ]
-      properties:
-        bookId: { type: integer, format: int64, example: 123 }
-        purchased: { type: boolean, example: true }
 
     ErrorResponse:
       type: object
