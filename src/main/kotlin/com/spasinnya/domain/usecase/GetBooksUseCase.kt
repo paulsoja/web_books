@@ -19,7 +19,7 @@ class GetBooksUseCase(
                 title = book.title,
                 subtitle = book.subtitle,
                 language = book.language,
-                isPurchased = book.id in purchasedIds
+                isPurchased = true
             )
         }
     }
