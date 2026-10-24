@@ -25,7 +25,7 @@ class PurchaseRoutesTest {
     private val algorithm = Algorithm.HMAC256("purchase-test-secret")
     private fun token(user: String) = JWT.create().withSubject(user).sign(algorithm)
 
-    private fun Application.setup(db: PurchaseTestDatabase) {
+    private fun Application.setup(db: PurchaseTestDatabase, submit: com.spasinnya.domain.usecase.SubmitPurchaseUseCase = db.submit) {
         configureSerialization()
         configureRouting()
         install(Authentication) {
@@ -36,8 +36,8 @@ class PurchaseRoutesTest {
         }
         routing {
             authenticate("test") {
-                purchaseRoutes(db.submit, GetEntitlementsUseCase(db.entitlements))
-                bookRoutes(GetBooksUseCase(BookDataRepository(db.database), db.entitlements))
+                purchaseRoutes(submit, GetEntitlementsUseCase(db.entitlements))
+                bookRoutes(GetBooksUseCase(BookDataRepository(db.database)))
             }
         }
     }
@@ -81,9 +81,45 @@ class PurchaseRoutesTest {
         application { setup(db) }
         assertEquals(HttpStatusCode.Unauthorized, client.get("/me/entitlements").status)
         assertEquals(HttpStatusCode.Unauthorized, client.post("/purchases/ios").status)
+        assertEquals(HttpStatusCode.Unauthorized, client.post("/purchases/android").status)
+        assertEquals(HttpStatusCode.Unauthorized, client.get("/purchases/android/account").status)
         assertEquals(HttpStatusCode.Unauthorized, client.get("/me/entitlements") {
             bearerAuth(token("invalid"))
         }.status)
+    }
+
+    @OptIn(kotlin.time.ExperimentalTime::class)
+    @Test
+    fun `Android endpoint uses JWT account identity and rejects client supplied authority`() = testApplication {
+        val accountId = com.spasinnya.domain.model.purchase.AndroidPurchaseIdentity.accountId(1)
+        val verifier = com.spasinnya.domain.port.StorePurchaseVerifier { proof ->
+            assertEquals(com.spasinnya.domain.model.purchase.StorePlatform.ANDROID, proof.platform)
+            assertEquals("android-token", proof.value)
+            assertEquals(accountId, proof.accountId)
+            com.spasinnya.domain.model.purchase.VerifiedPurchase(
+                proof.platform, "android.book.1", "android-tx", kotlin.time.Instant.fromEpochMilliseconds(1780000000000),
+                com.spasinnya.domain.model.purchase.StoreEnvironment.PRODUCTION, proof.value
+            )
+        }
+        application { setup(db, com.spasinnya.domain.usecase.SubmitPurchaseUseCase(verifier, db.purchases)) }
+        val accountResponse = client.get("/purchases/android/account") { bearerAuth(token("1")) }
+        assertEquals(HttpStatusCode.OK, accountResponse.status)
+        assertEquals(accountId, Json.parseToJsonElement(accountResponse.bodyAsText()).jsonObject["obfuscatedAccountId"]!!.jsonPrimitive.content)
+        for (body in listOf("{}", "broken", """{"purchaseToken":"android-token","userId":2}""")) {
+            assertEquals(HttpStatusCode.BadRequest, client.post("/purchases/android") {
+                bearerAuth(token("1")); contentType(ContentType.Application.Json); setBody(body)
+            }.status)
+        }
+        repeat(2) {
+            val response = client.post("/purchases/android") {
+                bearerAuth(token("1")); contentType(ContentType.Application.Json)
+                setBody("""{"purchaseToken":"android-token"}""")
+            }
+            assertEquals(HttpStatusCode.OK, response.status, response.bodyAsText())
+        }
+        assertEquals(1L, db.countPurchases())
+        assertEquals(listOf(1L), db.entitlements.findProductIdsByUser(1).getOrThrow())
+        assertEquals(emptyList(), db.entitlements.findProductIdsByUser(2).getOrThrow())
     }
 
     @Test

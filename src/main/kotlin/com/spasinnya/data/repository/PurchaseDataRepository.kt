@@ -56,6 +56,13 @@ class PurchaseDataRepository(private val database: Database) : PurchaseRepositor
             it[Entitlements.userId] = userId
             it[Entitlements.productId] = grantedProductId
         }
+        purchase.androidPurchaseToken?.let { token ->
+            AndroidPurchaseAcknowledgements.insertIgnore {
+                it[purchaseId] = persisted[Purchases.id]
+                it[purchaseToken] = token
+                it[googleOrderId] = purchase.googleOrderId
+            }
+        }
         grantedProductId
     }
 }

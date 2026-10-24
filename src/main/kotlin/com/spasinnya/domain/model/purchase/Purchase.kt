@@ -7,14 +7,16 @@ import kotlin.time.Instant
 enum class StorePlatform { IOS, ANDROID }
 enum class StoreEnvironment { SANDBOX, PRODUCTION }
 
-data class PurchaseProof(val platform: StorePlatform, val value: String)
+data class PurchaseProof(val platform: StorePlatform, val value: String, val accountId: String? = null)
 
 data class VerifiedPurchase(
     val platform: StorePlatform,
     val storeProductId: String,
     val storeTransactionId: String,
     val purchasedAt: Instant,
-    val environment: StoreEnvironment
+    val environment: StoreEnvironment,
+    val androidPurchaseToken: String? = null,
+    val googleOrderId: String? = null
 )
 
 data class Purchase(

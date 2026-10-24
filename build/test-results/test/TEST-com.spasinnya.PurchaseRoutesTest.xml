@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.spasinnya.PurchaseRoutesTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-10-24T08:30:54.473Z" hostname="BOOK-2RMR8V880R" time="1.634">
+  <properties/>
+  <testcase name="authenticated purchase returns authoritative access and isolates users" classname="com.spasinnya.PurchaseRoutesTest" time="1.464"/>
+  <testcase name="Android endpoint uses JWT account identity and rejects client supplied authority" classname="com.spasinnya.PurchaseRoutesTest" time="0.07"/>
+  <testcase name="legacy unverified purchase route is removed" classname="com.spasinnya.PurchaseRoutesTest" time="0.02"/>
+  <testcase name="endpoints require JWT and valid subject" classname="com.spasinnya.PurchaseRoutesTest" time="0.035"/>
+  <testcase name="invalid proof and malformed request produce expected errors" classname="com.spasinnya.PurchaseRoutesTest" time="0.045"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

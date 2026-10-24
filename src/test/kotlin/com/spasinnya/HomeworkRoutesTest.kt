@@ -40,13 +40,18 @@ class HomeworkRoutesTest {
     private class FakeUserAnswerRepository(
         var allBooksResult: Result<List<BookHomeworkStatus>> = Result.success(emptyList())
     ) : UserAnswerRepository {
+        var savedAnswers: List<HomeworkAnswer> = emptyList()
+
         override suspend fun upsertLessonAnswers(
             userId: Long,
             bookId: String,
             weekNumber: Int,
             lessonNumber: Int,
             answers: List<HomeworkAnswer>
-        ): Result<Unit> = Result.success(Unit)
+        ): Result<Unit> {
+            savedAnswers = answers
+            return Result.success(Unit)
+        }
 
         override suspend fun getLessonAnswers(
             userId: Long,
@@ -102,6 +107,23 @@ class HomeworkRoutesTest {
                 )
             }
         }
+    }
+
+    @Test
+    fun `PUT homework accepts question id only alongside answered questions`() = testApplication {
+        val repo = FakeUserAnswerRepository()
+        application { testModule(repo) }
+
+        val response = client.put("/homework/book-1/weeks/1/lessons/1") {
+            header(HttpHeaders.Authorization, "Bearer ${generateToken(123L)}")
+            contentType(ContentType.Application.Json)
+            setBody("""{"answers":[{"questionId":"reading"},{"questionId":"name","values":[{"id":"__input__","answer":"John"}]}]}""")
+        }
+
+        assertEquals(HttpStatusCode.OK, response.status)
+        assertEquals(listOf("reading", "name"), repo.savedAnswers.map { it.questionId })
+        assertTrue(repo.savedAnswers[0].values.isEmpty())
+        assertEquals("John", repo.savedAnswers[1].values.single().answer)
     }
 
     @Test

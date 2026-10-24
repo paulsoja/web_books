@@ -45,6 +45,8 @@ class PurchaseTestDatabase {
             // Exercise the actual Flyway SQL, including constraints, rather than duplicate its schema.
             val migration = checkNotNull(javaClass.getResource("/db/migration/V8__store_purchases_and_entitlements.sql")).readText()
             migration.split(";").filter { it.isNotBlank() }.forEach { exec(it) }
+            val androidMigration = checkNotNull(javaClass.getResource("/db/migration/V9__android_purchase_acknowledgements.sql")).readText()
+            androidMigration.split(";").filter { it.isNotBlank() }.forEach { exec(it) }
             Users.insert { it[id] = 1; it[email] = "one@test.example" }
             Users.insert { it[id] = 2; it[email] = "two@test.example" }
             Books.insert { it[id] = 1; it[number] = "1"; it[title] = "Test book" }

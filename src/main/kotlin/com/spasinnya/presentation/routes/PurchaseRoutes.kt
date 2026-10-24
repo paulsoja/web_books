@@ -4,6 +4,7 @@ import com.spasinnya.domain.exception.BadRequestException
 import com.spasinnya.domain.exception.UnauthorizedException
 import com.spasinnya.domain.model.purchase.PurchaseProof
 import com.spasinnya.domain.model.purchase.StorePlatform
+import com.spasinnya.domain.model.purchase.AndroidPurchaseIdentity
 import com.spasinnya.domain.usecase.GetEntitlementsUseCase
 import com.spasinnya.domain.usecase.SubmitPurchaseUseCase
 import com.spasinnya.presentation.model.*
@@ -16,6 +17,21 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 
 fun Route.purchaseRoutes(submitPurchase: SubmitPurchaseUseCase, getEntitlements: GetEntitlementsUseCase) {
+    get("/purchases/android/account") {
+        call.respond(AndroidPurchaseAccountResponse(AndroidPurchaseIdentity.accountId(call.purchaseUserId())))
+    }
+    post("/purchases/android") {
+        val userId = call.purchaseUserId()
+        val request = try {
+            call.receive<AndroidPurchaseRequest>()
+        } catch (_: KtorBadRequestException) {
+            throw BadRequestException("Invalid purchase request")
+        }
+        val productId = submitPurchase(userId, PurchaseProof(
+            StorePlatform.ANDROID, request.purchaseToken, AndroidPurchaseIdentity.accountId(userId)
+        )).getOrThrow()
+        call.respond(StorePurchaseResponse(productId, granted = true))
+    }
     post("/purchases/ios") {
         val userId = call.purchaseUserId()
         val request = try {

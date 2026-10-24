@@ -38,3 +38,12 @@ object Entitlements : Table("entitlements") {
     override val primaryKey = PrimaryKey(id)
     init { uniqueIndex(userId, productId) }
 }
+
+object AndroidPurchaseAcknowledgements : Table("android_purchase_acknowledgements") {
+    val purchaseId = long("purchase_id").references(Purchases.id, onDelete = ReferenceOption.RESTRICT)
+    val purchaseToken = text("purchase_token")
+    val googleOrderId = varchar("google_order_id", 255).nullable()
+    val acknowledged = bool("acknowledged").default(false)
+    val nextAttemptAt = timestamp("next_attempt_at").defaultExpression(CurrentTimestamp)
+    override val primaryKey = PrimaryKey(purchaseId)
+}

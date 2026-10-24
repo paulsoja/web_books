@@ -587,6 +587,73 @@ paths:
         '500':
           description: Unexpected infrastructure failure
 
+  /purchases/android/account:
+    get:
+      tags: [Purchases]
+      summary: Get the current user's Google Billing obfuscated account ID
+      description: Pass this value to BillingFlowParams.Builder.setObfuscatedAccountId before purchasing.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Account binding derived from the JWT user
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [obfuscatedAccountId]
+                properties:
+                  obfuscatedAccountId: { type: string, minLength: 64, maxLength: 64 }
+        '401':
+          description: Unauthorized
+
+  /purchases/android:
+    post:
+      tags: [Purchases]
+      summary: Verify a Google Play purchase, persist permanent book access and acknowledge
+      description: |
+        Uses server-configured package name and Google service account. The Google purchase must
+        carry the current user's obfuscatedAccountId. Only completed, unconsumed, non-refunded,
+        single-unit permanent book purchases are accepted. Same user and token are idempotent.
+        If acknowledgement fails after commit, returns 503 with access already saved; retry the
+        same request. A persistent background queue also retries acknowledgement.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [purchaseToken]
+              properties:
+                purchaseToken: { type: string, minLength: 1, maxLength: 8192 }
+      responses:
+        '200':
+          description: Purchase persisted and acknowledged; productId is books.id
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [productId, granted]
+                properties:
+                  productId: { type: integer, format: int64 }
+                  granted: { type: boolean }
+              example: { productId: 1, granted: true }
+        '400':
+          description: INVALID_PROOF, WRONG_ACCOUNT, UNSUPPORTED_ENVIRONMENT or malformed JSON
+        '401':
+          description: Unauthorized
+        '409':
+          description: TRANSACTION_ALREADY_CLAIMED
+        '422':
+          description: UNKNOWN_PRODUCT
+        '503':
+          description: VERIFICATION_UNAVAILABLE; disabled integration, Google access/network failure or pending acknowledgement
+        '500':
+          description: Unexpected infrastructure failure
+
   /me/entitlements:
     get:
       tags: [Purchases]
@@ -856,12 +923,13 @@ components:
 
     HomeworkAnswer:
       type: object
-      required: [questionId, values]
+      required: [questionId]
       properties:
         questionId:
           type: string
         values:
           type: array
+          description: Omit for questions that do not require an answer.
           items:
             $ref: '#/components/schemas/HomeworkValue'
 

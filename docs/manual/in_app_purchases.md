@@ -4,15 +4,17 @@ Only non-consumable, permanent book access is supported. Product IDs in API resp
 
 ## Current integration status
 
-The purchase pipeline, database persistence, catalog validation and authenticated endpoints are implemented. **Apple cryptographic verification is mocked**, as requested. Real StoreKit JWS values are rejected by the mock. Google verification and an Android submission endpoint are deferred.
+The purchase pipeline, database persistence, catalog validation and authenticated endpoints are implemented. **Apple cryptographic verification is mocked**, as requested. Real StoreKit JWS values are rejected by the mock. Android now uses real Google Play verification when explicitly configured; see [Android setup](android_purchases.md) for credentials, mappings, client integration, acknowledgement retries and remaining release work.
 
 `AppleTransactionDecoder` is the replacement point for a real Apple verifier: it must cryptographically verify the JWS before returning transaction data. Adding credentials alone does not turn the mock into real verification. A production adapter and its signature/certificate verification tests must be added before accepting real purchases.
 
-No external store requests or credentials are used in this version.
+Apple mock mode uses no external store requests. Google Play uses a server-only service account JSON key and short-lived OAuth tokens.
 
 ## Endpoints
 
-Both endpoints use the existing JWT bearer authentication; the JWT subject determines the user.
+All purchase endpoints use the existing JWT bearer authentication; the JWT subject determines the user.
+
+Android: `GET /purchases/android/account` and `POST /purchases/android` are documented in [Android setup](android_purchases.md).
 
 `POST /purchases/ios`
 
@@ -50,7 +52,7 @@ Use a separate development database: mock grants are persisted, just like purcha
 ```sql
 INSERT INTO store_product_mappings (platform, store_product_id, product_id)
 VALUES ('IOS', 'dev.book.1.ios', 1);
--- Optional future Android mapping to the same book:
+-- Android mapping to the same book (use the actual Play Console product ID):
 INSERT INTO store_product_mappings (platform, store_product_id, product_id)
 VALUES ('ANDROID', 'dev.book.1.android', 1);
 ```
@@ -69,7 +71,7 @@ $env:APPLE_MOCK_FIXTURES_FILE = 'C:\work\backend\web_books\docs\examples\apple-p
 
 Fixture content is server-owned; clients cannot fabricate transactions by encoding JSON as JWS. Do not expose a fixture editing endpoint. The sample token is intentionally public for local testing.
 
-Defaults: `PURCHASE_VERIFICATION_MODE=disabled` returns 503 for submissions while entitlement retrieval continues working. Mock mode requires `APP_ENV=development` or `test`, the bundle ID and a nonempty fixture file. Only Sandbox fixtures are accepted in configured mock mode. A production environment with mock mode fails startup. No default catalog entries or automatic book grants are installed.
+Defaults: `PURCHASE_VERIFICATION_MODE=disabled` returns 503 for iOS submissions while entitlement retrieval continues working. Android is controlled independently by `GOOGLE_PLAY_ENABLED`. Mock mode requires `APP_ENV=development` or `test`, the bundle ID and a nonempty fixture file. Only Sandbox fixtures are accepted in configured mock mode. A production environment with mock mode fails startup. No default catalog entries or automatic book grants are installed.
 
 ## Persistence and errors
 
@@ -97,4 +99,4 @@ Malformed JSON uses the existing bad-request envelope. Unexpected database/infra
 
 ## Validation
 
-Run `.\gradlew.bat test`. Tests use H2 PostgreSQL mode, execute the actual V8 SQL, and cover JWT isolation, duplicate/concurrent transactions, rollback, catalog validation, rejected fixture cases and shared Android/iOS domain IDs. They do not validate real Apple signatures or contact either store. PostgreSQL deployment/Flyway execution still needs verification in the target environment.
+Run `.\gradlew.bat test`. Tests use H2 PostgreSQL mode and execute the actual V8/V9 SQL. They cover JWT isolation, duplicate/concurrent transactions, rollback, catalog validation, Google HTTP contracts and acknowledgement retries. They do not validate real Apple signatures or contact live stores. PostgreSQL deployment/Flyway execution still needs verification in the target environment. `PURCHASE_VERIFICATION_MODE` controls iOS only; `GOOGLE_PLAY_ENABLED` independently controls Android.
