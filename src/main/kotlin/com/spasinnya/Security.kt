@@ -2,11 +2,12 @@ package com.spasinnya
 
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
+import com.spasinnya.domain.repository.UserRepository
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.auth.jwt.*
 
-fun Application.configureSecurity() {
+fun Application.configureSecurity(users: UserRepository) {
     // Please read the jwt property from the config file if you are using EngineMain
     val jwtAudience = "jwt-audience"
     val jwtDomain = "https://jwt-provider-domain/"
@@ -24,7 +25,12 @@ fun Application.configureSecurity() {
                     .build()
             )
             validate { credential ->
-                JWTPrincipal(credential.payload)
+                val userId = credential.payload.subject?.toLongOrNull()?.takeIf { it > 0 }
+                if (userId != null && users.findById(userId).getOrThrow() != null) {
+                    JWTPrincipal(credential.payload)
+                } else {
+                    null
+                }
             }
         }
     }

@@ -8,5 +8,5 @@ data class BookShortResponse(
     val number: String,
     val title: String,
     val subtitle: String? = null,
-    val isPurchased: Boolean,
+    val isPurchased: Boolean = true,
 )

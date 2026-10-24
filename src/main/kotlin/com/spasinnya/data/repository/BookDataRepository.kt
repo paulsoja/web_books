@@ -47,7 +47,7 @@ class BookDataRepository(
                     number = it[Books.number],
                     subtitle = it[Books.subtitle],
                     language = it[Books.language],
-                    isPurchased = false
+                    isPurchased = true
                 )
             }
     }

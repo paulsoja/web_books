@@ -31,6 +31,17 @@ class UserAnswerDataRepositoryTest {
     }
 
     @Test
+    fun `question without answer is persisted and counts as completed lesson`() = runBlocking {
+        val answers = listOf(HomeworkAnswer("reading", emptyList()))
+
+        repository.upsertLessonAnswers(10L, "book-1", 1, 1, answers).getOrThrow()
+
+        assertEquals(answers, repository.getLessonAnswers(10L, "book-1", 1, 1).getOrThrow())
+        assertEquals(listOf(1), repository.getLessonsWithAnswers(10L, "book-1", 1).getOrThrow())
+        assertEquals(1, repository.getAllBooksHomeworkStatus(10L).getOrThrow().single().completedLessons)
+    }
+
+    @Test
     fun `getAllBooksHomeworkStatus returns distinct completed lessons count per book`() = runBlocking {
         val userId = 10L
 

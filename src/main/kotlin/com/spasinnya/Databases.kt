@@ -4,6 +4,14 @@ import com.spasinnya.data.repository.BookDataRepository
 import com.spasinnya.data.repository.ExposedOtpRepository
 import com.spasinnya.data.repository.LessonDataRepository
 import com.spasinnya.data.repository.PurchaseDataRepository
+import com.spasinnya.data.repository.EntitlementDataRepository
+import com.spasinnya.data.service.purchase.PurchaseVerificationConfig
+import com.spasinnya.data.service.purchase.GooglePlayPurchases
+import com.spasinnya.domain.port.StorePurchaseVerifier
+import com.spasinnya.domain.model.purchase.StorePlatform
+import com.spasinnya.domain.exception.PurchaseException
+import com.spasinnya.domain.exception.PurchaseError
+import com.spasinnya.presentation.routes.purchaseRoutes
 import com.spasinnya.data.repository.RefreshTokenDataRepository
 import com.spasinnya.data.repository.UserAnswerDataRepository
 import com.spasinnya.data.repository.UserDataRepository
@@ -59,9 +67,20 @@ fun Application.configureDatabases() {
     val passwordHasher: PasswordHasher = BcryptPasswordHasher()
 
     val userRepository: UserRepository = UserDataRepository(database)
+    configureSecurity(userRepository)
     val refreshRepository: RefreshTokenRepository = RefreshTokenDataRepository(database)
     val bookRepository: BookRepository = BookDataRepository(database)
     val purchaseRepository: PurchaseRepository = PurchaseDataRepository(database)
+    val entitlementRepository = EntitlementDataRepository(database)
+    val appleVerifier = PurchaseVerificationConfig.createVerifier()
+    val googlePurchases = GooglePlayPurchases.configure(this, database)
+    val purchaseVerifier = StorePurchaseVerifier { proof ->
+        when (proof.platform) {
+            StorePlatform.IOS -> appleVerifier.verify(proof)
+            StorePlatform.ANDROID -> googlePurchases?.verifier?.verify(proof)
+                ?: throw PurchaseException(PurchaseError.VERIFICATION_UNAVAILABLE)
+        }
+    }
     val weekRepository: WeekRepository = WeekDataRepository(database)
     val lessonRepository = LessonDataRepository(database)
     val userAnswerRepository: UserAnswerRepository = UserAnswerDataRepository(database)
@@ -135,14 +154,11 @@ fun Application.configureDatabases() {
     )
 
     val getBooksUseCase = GetBooksUseCase(
-        bookRepository = bookRepository,
-        purchaseRepository = purchaseRepository
+        bookRepository = bookRepository
     )
 
-    val purchaseBookSimpleUseCase = PurchaseBookSimpleUseCase(
-        books = bookRepository,
-        purchases = purchaseRepository
-    )
+    val submitPurchase = SubmitPurchaseUseCase(purchaseVerifier, purchaseRepository) { googlePurchases?.finish(it) }
+    val getEntitlements = GetEntitlementsUseCase(entitlementRepository)
 
     val getWeeksUseCase = GetWeeksUseCase(weekRepository = weekRepository)
 
@@ -173,12 +189,13 @@ fun Application.configureDatabases() {
             }
             userRoutes(
                 getUserProfileUseCase = profileUseCase,
-                updateUserProfileUseCase = updateUserProfileUseCase
+                updateUserProfileUseCase = updateUserProfileUseCase,
+                deleteAccountUseCase = DeleteAccountUseCase(userRepository)
             )
             bookRoutes(
-                getBooksUseCase = getBooksUseCase,
-                purchaseBookSimpleUseCase = purchaseBookSimpleUseCase
+                getBooksUseCase = getBooksUseCase
             )
+            purchaseRoutes(submitPurchase, getEntitlements)
             weekRoutes(getWeeksUseCase = getWeeksUseCase)
             lessonsRoutes(getLessonsByWeekIdUseCase = getLessonsByWeekIdUseCase)
             homeworkRoutes(

@@ -4,6 +4,7 @@ import com.spasinnya.domain.model.User
 import com.spasinnya.domain.model.UserProfile
 
 interface UserRepository {
+    suspend fun deleteAccount(userId: Long): Result<Unit>
     suspend fun createUser(email: String, passwordHash: String?, status: String = "pending"): Result<Long>
     suspend fun findByEmail(email: String): Result<User?>
     suspend fun findById(id: Long): Result<User?>

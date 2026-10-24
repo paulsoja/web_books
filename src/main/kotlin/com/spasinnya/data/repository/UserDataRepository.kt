@@ -3,17 +3,18 @@
 package com.spasinnya.data.repository
 
 import com.spasinnya.data.extension.runDb
-import com.spasinnya.data.repository.database.table.UserProfiles
-import com.spasinnya.data.repository.database.table.Users
+import com.spasinnya.data.repository.database.table.*
+import com.spasinnya.domain.exception.NotFoundException
 import com.spasinnya.domain.model.User
 import com.spasinnya.domain.model.UserProfile
 import com.spasinnya.domain.repository.UserRepository
-import io.ktor.server.plugins.NotFoundException
 import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.core.inSubQuery
 import org.jetbrains.exposed.v1.datetime.CurrentTimestamp
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.insert
+import org.jetbrains.exposed.v1.jdbc.deleteWhere
 import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.update
@@ -23,6 +24,27 @@ import kotlin.time.ExperimentalTime
 class UserDataRepository(
     private val database: Database
 ) : UserRepository {
+
+    override suspend fun deleteAccount(userId: Long): Result<Unit> = database.runDb {
+        val user = Users.selectAll().where { Users.id eq userId }.forUpdate().singleOrNull()
+            ?: throw NotFoundException("User not found")
+        val email = user[Users.email]
+
+        // Remove indirect references before purchases (their foreign key uses RESTRICT).
+        AndroidPurchaseAcknowledgements.deleteWhere {
+            purchaseId inSubQuery Purchases.select(Purchases.id).where { Purchases.userId eq userId }
+        }
+        Purchases.deleteWhere { Purchases.userId eq userId }
+        Entitlements.deleteWhere { Entitlements.userId eq userId }
+        UserPurchases.deleteWhere { UserPurchases.userId eq userId }
+        UserAnswers.deleteWhere { UserAnswers.userId eq userId }
+        RefreshTokens.deleteWhere { RefreshTokens.userId eq userId }
+        UserProfiles.deleteWhere { UserProfiles.userId eq userId }
+        OtpTokens.deleteWhere { OtpTokens.email eq email }
+        EmailOtps.deleteWhere { EmailOtps.email eq email }
+        Users.deleteWhere { Users.id eq userId }
+        Unit
+    }
 
     override suspend fun createUser(email: String, passwordHash: String?, status: String): Result<Long> = database.runDb {
         val now = Clock.System.now()

@@ -1,6 +1,7 @@
 package com.spasinnya.presentation.routes
 
 import com.spasinnya.domain.usecase.GetUserProfileUseCase
+import com.spasinnya.domain.usecase.DeleteAccountUseCase
 import com.spasinnya.domain.usecase.UpdateUserProfileUseCase
 import com.spasinnya.presentation.mapper.toResponse
 import com.spasinnya.presentation.model.UpdateUserProfileRequest
@@ -13,8 +14,18 @@ import io.ktor.server.routing.*
 
 fun Route.userRoutes(
     getUserProfileUseCase: GetUserProfileUseCase,
-    updateUserProfileUseCase: UpdateUserProfileUseCase
+    updateUserProfileUseCase: UpdateUserProfileUseCase,
+    deleteAccountUseCase: DeleteAccountUseCase
 ) {
+    delete("/me") {
+        val userId = call.principal<JWTPrincipal>()?.payload?.subject?.toLongOrNull()
+            ?.takeIf { it > 0 }
+            ?: return@delete call.respond(HttpStatusCode.Unauthorized)
+
+        deleteAccountUseCase(userId).getOrThrow()
+        call.respond(HttpStatusCode.NoContent)
+    }
+
     get("/me") {
         val principal = call.principal<JWTPrincipal>()
             ?: return@get call.respond(HttpStatusCode.Unauthorized)

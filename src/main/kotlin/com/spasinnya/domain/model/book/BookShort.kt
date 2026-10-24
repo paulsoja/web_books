@@ -6,5 +6,5 @@ data class BookShort(
     val title: String,
     val subtitle: String? = null,
     val language: String,
-    val isPurchased: Boolean,
+    val isPurchased: Boolean = true,
 )

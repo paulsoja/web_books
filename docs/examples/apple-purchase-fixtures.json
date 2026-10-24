@@ -1,0 +1,10 @@
+{
+  "dev-book-1-transaction-1": {
+    "transactionId": "dev-transaction-1",
+    "productId": "dev.book.1.ios",
+    "bundleId": "dev.books.app",
+    "purchaseDate": 1780000000000,
+    "environment": "Sandbox",
+    "type": "Non-Consumable"
+  }
+}

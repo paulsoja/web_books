@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.spasinnya.GetBooksUseCaseTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2026-10-24T08:30:54.397Z" hostname="BOOK-2RMR8V880R" time="0.067">
+  <properties/>
+  <testcase name="getBooks grants all books to every user without purchases" classname="com.spasinnya.GetBooksUseCaseTest" time="0.065"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
